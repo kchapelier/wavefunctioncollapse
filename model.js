@@ -16,40 +16,43 @@ Model.prototype.limit = 0;
 
 Model.prototype.periodic = false;
 
-
 Model.prototype.observe = function () {
     var min = 1000,
         argminx = -1,
-        argminy = -1;
+        argminy = -1,
+        distribution = new Array(this.T),
+        entropy,
+        noise,
+        sum,
+        wavex,
+        r,
+        x,
+        y,
+        t;
 
-    var distribution = new Array(this.T);
+    for (x = 0; x < this.FMX; x++) {
+        wavex = this.wave[x];
+        for (y = 0; y < this.FMY; y++) {
+            if (this.onBoundary(x, y)) {
+                continue;
+            }
 
-    var self = this;
-    var set = function set(x, y) {
-        var sum = 0;
-        for (var t = 0; t < self.T; t++) {
-            distribution[t] = self.wave[x][y][t] ? self.stationary[t] : 0;
-            sum+= distribution[t];
-        }
-        return sum;
-    };
+            sum = 0;
 
-    for (var x = 0; x < this.FMX; x++) {
-        for (var y = 0; y < this.FMY; y++)
-        {
-            if (this.onBoundary(x, y)) continue;
-
-            var sum = set(x, y);
+            for (t = 0; t < this.T; t++) {
+                distribution[t] = wavex[y][t] ? this.stationary[t] : 0;
+                sum+= distribution[t];
+            }
 
             if (sum === 0) {
                 return false;
             }
 
-            for (var t = 0; t < this.T; t++) {
+            for (t = 0; t < this.T; t++) {
                 distribution[t] /= sum;
             }
 
-            var entropy = 0;
+            entropy = 0;
 
             for (var i = 0; i < distribution.length; i++) {
                 if (distribution[i] > 0) {
@@ -57,7 +60,7 @@ Model.prototype.observe = function () {
                 }
             }
 
-            var noise = 0.000001 * this.rng();
+            noise = 0.000001 * this.rng();
 
             if (entropy > 0 && entropy + noise < min)
             {
@@ -72,10 +75,12 @@ Model.prototype.observe = function () {
         return true;
     }
 
-    set(argminx, argminy);
+    for (t = 0; t < this.T; t++) {
+        distribution[t] = this.wave[argminx][argminy][t] ? this.stationary[t] : 0;
+    }
 
-    var r = randomIndice(distribution, this.rng());
-    for (var t = 0; t < this.T; t++) {
+    r = randomIndice(distribution, this.rng());
+    for (t = 0; t < this.T; t++) {
         this.wave[argminx][argminy][t] = (t === r);
     }
 

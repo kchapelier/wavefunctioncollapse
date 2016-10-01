@@ -10,21 +10,32 @@ var OverlappingModel = require('./overlapping-model');
 
 var Jimp = require('jimp');
 
-Jimp.read("RedMaze.bmp", function (err, lenna) {
+var seed = require('seed-random');
+
+Jimp.read("Flowers.bmp", function (err, lenna) {
   if (err) throw err;
 
   var data = new Uint8Array(lenna.bitmap.data);
   var width = lenna.bitmap.width;
   var height = lenna.bitmap.height;
 
-  var model = new OverlappingModel(data, width, height, 2, 48, 48, true, true, 8, 0);
+  var destWidth = 48;
+  var destHeight = 48;
 
-  if (model.run(0)) {
+  var model = new OverlappingModel(data, width, height, 3, destWidth, destHeight, true, true, 2, 102);
+
+  var time = Date.now();
+  var finished = model.run(0/*, seed('testing')*/);
+  console.log(Date.now() - time, 'ms');
+
+  console.log(finished);
+
+  if (finished) {
     var result = model.graphics();
 
-    var image = new Jimp(48, 48, function (err, image) {
+    var image = new Jimp(destWidth, destHeight, function (err, image) {
       image.bitmap.data = new Buffer(result.buffer);
-      image.write("RedMazeTest.png");
+      image.write("FlowerTest.png");
     });
   }
 
