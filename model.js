@@ -1,5 +1,7 @@
 "use strict";
 
+var randomIndice = require('./random-indice');
+
 var Model = function Model () {};
 
 Model.prototype.rng = null;
@@ -32,8 +34,6 @@ Model.prototype.observe = function () {
         return sum;
     };
 
-    //console.log('observe');
-
     for (var x = 0; x < this.FMX; x++) {
         for (var y = 0; y < this.FMY; y++)
         {
@@ -41,28 +41,19 @@ Model.prototype.observe = function () {
 
             var sum = set(x, y);
 
-
-          /*
-            if (isNaN(sum)) {
-              console.log(x,y,sum);
-              process.exit();
-            }
-            */
-
             if (sum === 0) {
-              //console.log(x,y,sum);
                 return false;
             }
 
-            for (var t = 0; t < this.T; t++) distribution[t] /= sum;
+            for (var t = 0; t < this.T; t++) {
+                distribution[t] /= sum;
+            }
 
             var entropy = 0;
 
-            //double entropy = (from p in distribution where p > 0 select -p * Math.Log(p)).Sum();
-
             for (var i = 0; i < distribution.length; i++) {
                 if (distribution[i] > 0) {
-                    entropy = -distribution[i] * Math.log(distribution[i]);
+                    entropy+= -distribution[i] * Math.log(distribution[i]);
                 }
             }
 
@@ -81,12 +72,9 @@ Model.prototype.observe = function () {
         return true;
     }
 
-    //console.log(argminx, argminy);
-
     set(argminx, argminy);
 
-    var r = distribution[(this.rng() * distribution.length) | 0];
-
+    var r = randomIndice(distribution, this.rng());
     for (var t = 0; t < this.T; t++) {
         this.wave[argminx][argminy][t] = (t === r);
     }
@@ -112,9 +100,13 @@ Model.prototype.run = function (limit, rng) {
     this.rng = rng || Math.random;
 
     for (l = 0; l < limit || limit === 0; l++) {
+        //console.log('iteration #' + (l + 1));
+
         result = this.observe();
 
-        if (result != null) {
+        //console.log(result);
+
+        if (result !== null) {
             return !!result;
         }
 

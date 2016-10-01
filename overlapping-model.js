@@ -253,27 +253,12 @@ OverlappingModel.prototype.propagate = function () {
     var x1, y1, x2, y2, sx, sy, dx, dy;
     var allowed;
 
-    //console.log('propagate');
-
     for (x1 = 0; x1 < this.FMX; x1++) {
         for (y1 = 0; y1 < this.FMY; y1++) {
             if (this.changes[x1][y1]) {
                 this.changes[x1][y1] = false;
                 for (dx = -this.N + 1; dx < this.N; dx++) {
                     for (dy = -this.N + 1; dy < this.N; dy++) {
-                      /*
-                      x2 = x1 + dx;
-                      y2 = y1 + dy;
-
-                      sx = x2;
-                      if (sx < 0) sx += FMX;
-                      else if (sx >= FMX) sx -= FMX;
-
-                      sy = y2;
-                      if (sy < 0) sy += FMY;
-                      else if (sy >= FMY) sy -= FMY;
-                      */
-
                         x2 = x1 + dx;
                         y2 = y1 + dy;
 
@@ -291,12 +276,6 @@ OverlappingModel.prototype.propagate = function () {
                             sy -= this.FMY;
                         }
 
-                      /*
-                      if (!periodic && (sx + N > FMX || sy + N > FMY)) continue;
-                      allowed = wave[sx][sy];
-                      */
-
-
                         if (!this.periodic && (sx + this.N > this.FMX || sy + this.N > this.FMY)) {
                             continue;
                         }
@@ -304,27 +283,11 @@ OverlappingModel.prototype.propagate = function () {
                         allowed = this.wave[sx][sy];
 
                         for (var t2 = 0; t2 < this.T; t2++) {
-                          /*
-                          bool b = false;
-                          int[] prop = propagator[t2][N - 1 - dx][N - 1 - dy];
-                          for (int i1 = 0; i1 < prop.Length && !b; i1++) b = wave[x1][y1][prop[i1]];
-                          */
-
-
                             var b = false;
                             var prop = this.propagator[t2][this.N - 1 - dx][this.N - 1 - dy];
                             for (var i1 = 0; i1 < prop.length && !b; i1++) {
                                 b = this.wave[x1][y1][prop[i1]];
                             }
-
-                          /*
-                          if (allowed[t2] && !b)
-                          {
-                            changes[sx][sy] = true;
-                            change = true;
-                            allowed[t2] = false;
-                          }
-                          */
 
                             if (allowed[t2] && !b) {
                                 this.changes[sx][sy] = true;

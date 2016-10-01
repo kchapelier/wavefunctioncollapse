@@ -19,11 +19,7 @@ Jimp.read("RedMaze.bmp", function (err, lenna) {
 
   var model = new OverlappingModel(data, width, height, 2, 48, 48, true, true, 8, 0);
 
-  var finished = model.run(0);
-
-  console.log(finished);
-
-  if (finished) {
+  if (model.run(0)) {
     var result = model.graphics();
 
     var image = new Jimp(48, 48, function (err, image) {
