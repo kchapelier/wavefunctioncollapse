@@ -1,12 +1,6 @@
 "use strict";
 
-var OverlappingModel = require('./overlapping-model');
-
-// <overlapping name="Flowers" N="3" symmetry="2" foundation="102" width="30" height="30" screenshots="1"/>
-
-//new OverlappingModel(name, xnode.Get("N", 2), xnode.Get("width", 48), xnode.Get("height", 48), xnode.Get("periodicInput", true), xnode.Get("periodicOutput", true), xnode.Get("symmetry", 8), xnode.Get("foundation", 0));
-
-//var model = new OverlappingModel(data, width, height, 3, 30, 30, true, true, 2, 102);
+var OverlappingModel = require('./index').OverlappingModel;
 
 var Jimp = require('jimp');
 

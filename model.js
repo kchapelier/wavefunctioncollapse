@@ -16,6 +16,10 @@ Model.prototype.limit = 0;
 
 Model.prototype.periodic = false;
 
+/**
+ * @protected
+ * @returns {*}
+ */
 Model.prototype.observe = function () {
     var min = 1000,
         argminx = -1,
@@ -90,10 +94,10 @@ Model.prototype.observe = function () {
 };
 
 /**
- *
- * @param {int} limit
- * @param {Function|null} [rng]
- * @returns {boolean}
+ * Start the generation
+ * @param {int} [limit=0] Maximum number of interations. 0 ensures a complete generation.
+ * @param {Function|null} [rng=Math.random] Random number generator function
+ * @returns {boolean} Success
  */
 Model.prototype.run = function (limit, rng) {
     var result,
@@ -105,11 +109,7 @@ Model.prototype.run = function (limit, rng) {
     this.rng = rng || Math.random;
 
     for (l = 0; l < limit || limit === 0; l++) {
-        //console.log('iteration #' + (l + 1));
-
         result = this.observe();
-
-        //console.log(result);
 
         if (result !== null) {
             return !!result;
@@ -122,7 +122,8 @@ Model.prototype.run = function (limit, rng) {
 };
 
 /**
- *
+ * Clear the internal state
+ * @protected
  */
 Model.prototype.clear = function () {
     var x,

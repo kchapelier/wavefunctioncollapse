@@ -230,10 +230,20 @@ OverlappingModel.prototype.foundation = 0;
 OverlappingModel.prototype.FMXmN = 0;
 OverlappingModel.prototype.FMYmN = 0;
 
+/**
+ * @param {int} x
+ * @param {int} y
+ * @protected
+ * @returns {boolean}
+ */
 OverlappingModel.prototype.onBoundary = function (x, y) {
     return !this.periodic && (x > this.FMXmN || y > this.FMYmN);
 };
 
+/**
+ * @protected
+ * @returns {boolean}
+ */
 OverlappingModel.prototype.propagate = function () {
     var change = false,
         startLoop = -this.N + 1,
@@ -299,6 +309,10 @@ OverlappingModel.prototype.propagate = function () {
     return change;
 };
 
+/**
+ * Clear the internal state
+ * @protected
+ */
 OverlappingModel.prototype.clear = function () {
     var x,
         y,
@@ -326,8 +340,13 @@ OverlappingModel.prototype.clear = function () {
     }
 };
 
-OverlappingModel.prototype.graphics = function () {
-    var result = new Uint8Array(this.FMX * this.FMY * 4),
+/**
+ * Retrieve the RGBA data
+ * @param {Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
+ * @returns {Uint8Array|Uint8ClampedArray} RGBA data
+ */
+OverlappingModel.prototype.graphics = function (array) {
+    var result = array || new Uint8Array(this.FMX * this.FMY * 4),
         x,
         y,
         t,
