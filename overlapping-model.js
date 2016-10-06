@@ -13,10 +13,10 @@ var Model = require('./model');
  * @param {boolean} periodicInput
  * @param {boolean} periodicOutput
  * @param {int} symmetry
- * @param {int} foundation
+ * @param {int} ground
  * @constructor
  */
-var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N, width, height, periodicInput, periodicOutput, symmetry, foundation) {
+var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N, width, height, periodicInput, periodicOutput, symmetry, ground) {
     var i,
         x,
         y,
@@ -146,7 +146,7 @@ var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N
     }
 
     this.T = weightsKeys.length;
-    this.foundation = (foundation + this.T) % this.T;
+    this.ground = (ground + this.T) % this.T;
 
     this.patterns = new Array(this.T);
     this.stationary = new Array(this.T);
@@ -225,7 +225,7 @@ OverlappingModel.prototype.propagator = null;
 OverlappingModel.prototype.N = 0;
 OverlappingModel.prototype.patterns = null;
 OverlappingModel.prototype.colors = null;
-OverlappingModel.prototype.foundation = 0;
+OverlappingModel.prototype.ground = 0;
 
 OverlappingModel.prototype.FMXmN = 0;
 OverlappingModel.prototype.FMYmN = 0;
@@ -324,10 +324,10 @@ OverlappingModel.prototype.clear = function () {
 
     Model.prototype.clear.call(this);
 
-    if (this.foundation !== 0) {
+    if (this.ground !== 0) {
         for (x = 0; x < this.FMX; x++) {
             for (t = 0; t < this.T; t++) {
-                if (t != this.foundation) {
+                if (t != this.ground) {
                     this.wave[x][this.FMY - 1][t] = false;
                 }
             }
@@ -335,12 +335,12 @@ OverlappingModel.prototype.clear = function () {
             this.changes[x][this.FMY - 1] = true;
 
             for (y = 0; y < this.FMY - 1; y++) {
-                this.wave[x][y][this.foundation] = false;
+                this.wave[x][y][this.ground] = false;
                 this.changes[x][y] = true;
             }
-
-            while (this.propagate()) {}
         }
+
+        while (this.propagate()) {}
     }
 };
 
