@@ -288,13 +288,17 @@ OverlappingModel.prototype.propagate = function () {
                         allowed = this.wave[sx][sy];
 
                         for (t = 0; t < this.T; t++) {
+                            if (!allowed[t]) {
+                              continue;
+                            }
+
                             b = false;
                             prop = this.propagator[t][this.N - 1 - dx][this.N - 1 - dy];
                             for (i = 0; i < prop.length && !b; i++) {
                                 b = this.wave[x][y][prop[i]];
                             }
 
-                            if (allowed[t] && !b) {
+                            if (!b) {
                                 this.changes[sx][sy] = true;
                                 change = true;
                                 allowed[t] = false;
