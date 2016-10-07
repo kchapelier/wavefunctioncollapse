@@ -107,11 +107,25 @@ addBitmapDataToStructure(structure, function (error, structure) {
 
     console.log('HERE');
 
-    var destWidth = 48;
-    var destHeight = 48;
+    var destWidth = 20;
+    var destHeight = 20;
 
     try {
         var model = new SimpleTiledModel(structure, null, destWidth, destHeight, false, false);
+
+
+        var finished = model.run(0);
+
+        console.log(finished);
+
+        if (finished) {
+            var result = model.graphics();
+
+            var image = new Jimp(destWidth, destHeight, function (err, image) {
+                image.bitmap.data = new Buffer(result.buffer);
+                image.write("CastleTest.png");
+            });
+        }
     } catch(e) {
         console.log(e.stack);
     }

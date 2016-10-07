@@ -285,9 +285,13 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
 
 
 
-    console.log('Action', action.join('\n'));
+    //console.log('Action', action.join('\n'));
 
-    console.log('First occurence', firstOccurrence);
+    //console.log('First occurence', firstOccurrence);
+    //console.log('stationary', this.stationary, this.stationary.length);
+    //process.exit();
+
+
 
     this.propagator = new Array(4);
 
@@ -295,6 +299,9 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
         this.propagator[d] = new Array(this.T);
         for (var t = 0; t < this.T; t++) {
             this.propagator[d][t] = new Array(this.T);
+            for (var t2 = 0; t2 < this.T; t2++) {
+                this.propagator[d][t][t2] = false;
+            }
         }
     }
 
@@ -358,6 +365,9 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
             R = action[firstOccurrence[right[0]]][right.length == 1 ? 0 : parseInt(right[1], 10)],
             U = action[R][1];
 
+        //console.log(left.join(', '), '/', right.join(', '));
+        //console.log(L, D, R, U);
+
         this.propagator[0][R][L] = true;
         this.propagator[0][action[R][6]][action[L][6]] = true;
         this.propagator[0][action[L][4]][action[R][4]] = true;
@@ -384,6 +394,10 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
             this.propagator[3][t2][t1] = this.propagator[1][t1][t2];
         }
     }
+
+    //console.log(this.propagator[3][0].join(', '));
+
+    //process.exit();
 };
 
 SimpleTiledModel.prototype = Object.create(Model.prototype);
@@ -547,5 +561,98 @@ SimpleTiledModel.prototype.propagate = function () {
     return change;
 };
 
+/**
+ * @param {int} x
+ * @param {int} y
+ * @protected
+ * @returns {boolean}
+ */
+SimpleTiledModel.prototype.onBoundary = function (x, y) {
+    return false;
+};
+
+/**
+ * Retrieve the RGBA data
+ * @param {Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
+ * @returns {Uint8Array|Uint8ClampedArray} RGBA data
+ */
+SimpleTiledModel.prototype.graphics = function (array) {
+    /*
+    Bitmap result = new Bitmap(FMX * tilesize, FMY * tilesize);
+    int[] bitmapData = new int[result.Height * result.Width];
+    */
+
+    array = array || new Uint8Array(this.FMX * this.tilesize * this.FMY * this.tilesize * 4);
+
+    for (var x = 0; x < this.FMX; x++) {
+        for (var y = 0; y < this.FMY; y++) {
+            /*
+            bool[] a = wave[x][y];
+            int amount = (from b in a where b select 1).Sum();
+            double lambda = 1.0 / (from t in Enumerable.Range(0, T) where a[t] select stationary[t]).Sum();
+            */
+
+            var a = this.wave[x][y];
+            var amount = 0;
+            var sum = 0;
+
+            for (var t = 0; t < a.length; t++) {
+                if (a[t]) {
+                    amount += 1;
+                    sum += this.stationary[t];
+                }
+            }
+
+            for (var yt = 0; yt < this.tilesize; yt++) {
+                for (var xt = 0; xt < this.tilesize; xt++) {
+                    /*
+                    if (black && amount == T) bitmapData[x * tilesize + xt + (y * tilesize + yt) * FMX * tilesize] = unchecked((int)0xff000000);
+                    else
+                    {
+                        double r = 0, g = 0, b = 0;
+                        for (int t = 0; t < T; t++) if (wave[x][y][t])
+                    {
+                        Color c = tiles[t][xt + yt * tilesize];
+                        r += (double)c.R * stationary[t] * lambda;
+                        g += (double)c.G * stationary[t] * lambda;
+                        b += (double)c.B * stationary[t] * lambda;
+                    }
+
+                        bitmapData[x * tilesize + xt + (y * tilesize + yt) * FMX * tilesize] =
+                            unchecked((int)0xff000000 | ((int)r << 16) | ((int)g << 8) | (int)b);
+                    }
+                    */
+
+                    if (this.black && amount === this.T) {
+                        array[(x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4] = 0;
+                        array[(x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4 + 1] = 0;
+                        array[(x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4 + 2] = 0;
+                        array[(x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4 + 3] = 255;
+                    } else {
+                        var r = 0, g = 0, b = 0, a = 0;
+
+                        for (var t = 0; t < this.T; t++) {
+                            if (this.wave[x][y][t]) {
+                                var color = this.tiles[t][xt + yt * this.tilesize];
+                                r += color[0] * this.stationary[t] / sum;
+                                g += color[1] * this.stationary[t] / sum;
+                                b += color[2] * this.stationary[t] / sum;
+                                a += color[3] * this.stationary[t] / sum;
+                            }
+                        }
+
+                        array[(x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4] = r / sum;
+                        array[(x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4 + 1] = g / sum;
+                        array[(x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4 + 2] = b / sum;
+                        array[(x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4 + 3] = a / sum;
+                    }
+                }
+            }
+
+        }
+    }
+
+    return array;
+};
 
 module.exports = SimpleTiledModel;
