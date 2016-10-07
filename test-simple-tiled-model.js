@@ -121,7 +121,7 @@ addBitmapDataToStructure(structure, function (error, structure) {
         if (finished) {
             var result = model.graphics();
 
-            var image = new Jimp(destWidth, destHeight, function (err, image) {
+            var image = new Jimp(destWidth * structure.tilesize, destHeight * structure.tilesize, function (err, image) {
                 image.bitmap.data = new Buffer(result.buffer);
                 image.write("CastleTest.png");
             });

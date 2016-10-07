@@ -8,8 +8,9 @@ Only the OverlappingModel is implemented currently.
 
 ## TODO
 
+- Add Simple Tiled Model to the demo
 - Document OverlappingModel.
 - Implement an iterative API on OverlappingModel (+ demo).
-- Port SimpleTiledModel.
+- Document SimpleTiledModel.
 - Implement an iterative API on SimpleTiledModel (+ demo).
 - Publish on npm.
