@@ -9,8 +9,6 @@ Only the OverlappingModel is implemented currently.
 ## TODO
 
 - Document OverlappingModel.
-- Check why the "Chess" example is not working in the demo.
-- Add MIT license.
 - Implement an iterative API on OverlappingModel (+ demo).
 - Port SimpleTiledModel.
 - Implement an iterative API on SimpleTiledModel (+ demo).
