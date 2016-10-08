@@ -634,10 +634,10 @@ SimpleTiledModel.prototype.graphics = function (array) {
                         for (var t = 0; t < this.T; t++) {
                             if (this.wave[x][y][t]) {
                                 var color = this.tiles[t][xt + yt * this.tilesize];
-                                r += color[0] * this.stationary[t] / sum;
-                                g += color[1] * this.stationary[t] / sum;
-                                b += color[2] * this.stationary[t] / sum;
-                                a += color[3] * this.stationary[t] / sum;
+                                r += color[0] * this.stationary[t];
+                                g += color[1] * this.stationary[t];
+                                b += color[2] * this.stationary[t];
+                                a += color[3] * this.stationary[t];
                             }
                         }
 
