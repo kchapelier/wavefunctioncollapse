@@ -289,7 +289,7 @@ OverlappingModel.prototype.propagate = function () {
 
                         for (t = 0; t < this.T; t++) {
                             if (!allowed[t]) {
-                              continue;
+                                continue;
                             }
 
                             b = false;
@@ -340,7 +340,8 @@ OverlappingModel.prototype.clear = function () {
             }
         }
 
-        while (this.propagate()) {}
+        while (this.propagate()) {
+        }
     }
 };
 
