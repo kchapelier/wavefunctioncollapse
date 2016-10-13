@@ -4,7 +4,9 @@ var randomIndice = require('./random-indice');
 
 var Model = function Model () {};
 
-Model.prototype.rng = null;
+Model.prototype.initiliazedField = false;
+Model.prototype.completedGeneration = false;
+
 Model.prototype.wave = null;
 Model.prototype.changes = null;
 Model.prototype.stationary = null;
@@ -17,10 +19,12 @@ Model.prototype.limit = 0;
 Model.prototype.periodic = false;
 
 /**
+ *
+ * @param {Function} rng Random number generator function
  * @protected
  * @returns {*}
  */
-Model.prototype.observe = function () {
+Model.prototype.observe = function (rng) {
     var min = 1000,
         argminx = -1,
         argminy = -1,
@@ -64,7 +68,7 @@ Model.prototype.observe = function () {
                 }
             }
 
-            noise = 0.000001 * this.rng();
+            noise = 0.000001 * rng();
 
             if (entropy > 0 && entropy + noise < min)
             {
@@ -83,7 +87,7 @@ Model.prototype.observe = function () {
         distribution[t] = this.wave[argminx][argminy][t] ? this.stationary[t] : 0;
     }
 
-    r = randomIndice(distribution, this.rng());
+    r = randomIndice(distribution, rng());
     for (t = 0; t < this.T; t++) {
         this.wave[argminx][argminy][t] = (t === r);
     }
@@ -94,36 +98,84 @@ Model.prototype.observe = function () {
 };
 
 /**
+ * Execute a single iteration
+ * @param {Function} rng Random number generator function
+ * @protected
+ * @returns {*}
+ */
+Model.prototype.singleIteration = function (rng) {
+    var result = this.observe(rng);
+
+    if (result !== null) {
+        this.completedGeneration = result;
+
+        return !!result;
+    }
+
+    while (this.propagate()) {}
+
+    return null;
+};
+
+/**
  * Start the generation
- * @param {int} [limit=0] Maximum number of interations. 0 ensures a complete generation.
+ * @param {int} [iterations=0] Maximum number of iterations. 0 makes it iterate until the generation is completed or a contradiction is reached.
  * @param {Function|null} [rng=Math.random] Random number generator function
  * @returns {boolean} Success
  */
-Model.prototype.run = function (limit, rng) {
+Model.prototype.iterate = function (iterations, rng) {
     var result,
-        l;
+        i;
 
-    this.clear();
+    if (!this.initiliazedField) {
+        this.clear();
+    }
 
-    limit = limit || 0;
-    this.rng = rng || Math.random;
+    iterations = iterations || 0;
+    rng = rng || Math.random;
 
-    for (l = 0; l < limit || limit === 0; l++) {
-        result = this.observe();
+    for (i = 0; i < iterations || iterations === 0; i++) {
+        result = this.singleIteration(rng);
 
         if (result !== null) {
             return !!result;
         }
-
-        while (this.propagate()) {}
     }
 
     return true;
 };
 
 /**
+ * Execute a complete generation
+ * @param {Function|null} [rng=Math.random] Random number generator function
+ * @returns {boolean} Success
+ */
+Model.prototype.generate = function (rng) {
+    var result;
+
+    rng = rng || Math.random;
+
+    this.clear();
+
+    while (true) {
+        result = this.singleIteration(rng);
+
+        if (result !== null) {
+            return !!result;
+        }
+    }
+};
+
+/**
+ * Check whether the generation is completed
+ * @returns {boolean}
+ */
+Model.prototype.isGenerationCompleted = function () {
+    return this.completedGeneration;
+};
+
+/**
  * Clear the internal state
- * @protected
  */
 Model.prototype.clear = function () {
     var x,
@@ -139,6 +191,9 @@ Model.prototype.clear = function () {
             this.changes[x][y] = false;
         }
     }
+
+    this.initiliazedField = true;
+    this.completedGeneration = false;
 };
 
 module.exports = Model;

@@ -19,13 +19,15 @@ Jimp.read("Flowers.bmp", function (err, lenna) {
   var model = new OverlappingModel(data, width, height, 3, destWidth, destHeight, true, true, 2, 102);
 
   var time = Date.now();
-  var finished = model.run(0/*, seed('testing')*/);
+  var finished = model.iterate(1000/*, seed('testing')*/);
   console.log(Date.now() - time, 'ms');
 
   console.log(finished);
 
   if (finished) {
-    var result = model.graphics();
+      var time = Date.now();
+    var result = model.graphics(null);
+      console.log(Date.now() - time, 'ms');
 
     var image = new Jimp(destWidth, destHeight, function (err, image) {
       image.bitmap.data = new Buffer(result.buffer);

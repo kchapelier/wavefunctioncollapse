@@ -9,10 +9,9 @@ var Model = require('./model');
  * @param {int} width
  * @param {int} height
  * @param {bool} periodic
- * @param {bool} black
  * @constructor
  */
-var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, height, periodic, black) {
+var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, height, periodic) {
     var unique = !!data.unique,
         subset = null,
         tilesize = data.tilesize || 16,
@@ -40,7 +39,6 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
     this.FMX = width;
     this.FMY = height;
     this.periodic = !!periodic;
-    this.black = !!black;
     this.tilesize = tilesize;
 
     this.tiles = [];
@@ -357,11 +355,51 @@ SimpleTiledModel.prototype.onBoundary = function (x, y) {
 };
 
 /**
- * Retrieve the RGBA data
- * @param {Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
- * @returns {Uint8Array|Uint8ClampedArray} RGBA data
+ * Set the RGBA data for a complete generation in a given array
+ * @param {array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
+ * @protected
  */
-SimpleTiledModel.prototype.graphics = function (array) {
+SimpleTiledModel.prototype.graphicsComplete = function (array) {
+    var wave,
+        pixelIndex,
+        color,
+        x,
+        y,
+        xt,
+        yt,
+        t;
+
+    for (x = 0; x < this.FMX; x++) {
+        for (y = 0; y < this.FMY; y++) {
+            wave = this.wave[x][y];
+
+            for (yt = 0; yt < this.tilesize; yt++) {
+                for (xt = 0; xt < this.tilesize; xt++) {
+                    pixelIndex = (x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4;
+
+                    for (t = 0; t < this.T; t++) {
+                        if (this.wave[x][y][t]) {
+                            color = this.tiles[t][yt * this.tilesize + xt];
+                            array[pixelIndex] = color[0];
+                            array[pixelIndex + 1] = color[1];
+                            array[pixelIndex + 2] = color[2];
+                            array[pixelIndex + 3] = color[3];
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+};
+
+/**
+ * Set the RGBA data for an incomplete generation in a given array
+ * @param {array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
+ * @param {array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
+ * @protected
+ */
+SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
     var wave,
         amount,
         sum,
@@ -376,8 +414,6 @@ SimpleTiledModel.prototype.graphics = function (array) {
         t,
         yt,
         xt;
-
-    array = array || new Uint8Array(this.FMX * this.tilesize * this.FMY * this.tilesize * 4);
 
     for (x = 0; x < this.FMX; x++) {
         for (y = 0; y < this.FMY; y++) {
@@ -396,11 +432,11 @@ SimpleTiledModel.prototype.graphics = function (array) {
                 for (xt = 0; xt < this.tilesize; xt++) {
                     pixelIndex = (x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4;
 
-                    if (this.black && amount === this.T) {
-                        array[pixelIndex] = 0;
-                        array[pixelIndex + 1] = 0;
-                        array[pixelIndex + 2] = 0;
-                        array[pixelIndex + 3] = 255;
+                    if (defaultColor && amount === this.T && defaultColor.length === 4) {
+                        array[pixelIndex] = defaultColor[0];
+                        array[pixelIndex + 1] = defaultColor[1];
+                        array[pixelIndex + 2] = defaultColor[2];
+                        array[pixelIndex + 3] = defaultColor[3];
                     } else {
                         r = 0;
                         g = 0;
@@ -426,6 +462,22 @@ SimpleTiledModel.prototype.graphics = function (array) {
             }
 
         }
+    }
+};
+
+/**
+ * Retrieve the RGBA data
+ * @param {Array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into (must already be set to the correct size), if not set a new Uint8Array will be created and returned
+ * @param {array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
+ * @returns {Array|Uint8Array|Uint8ClampedArray} RGBA data
+ */
+SimpleTiledModel.prototype.graphics = function (array, defaultColor) {
+    array = array || new Uint8Array(this.FMX * this.tilesize * this.FMY * this.tilesize * 4);
+
+    if (this.isGenerationCompleted()) {
+        this.graphicsComplete(array);
+    } else {
+        this.graphicsIncomplete(array, defaultColor);
     }
 
     return array;

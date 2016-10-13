@@ -346,12 +346,47 @@ OverlappingModel.prototype.clear = function () {
 };
 
 /**
- * Retrieve the RGBA data
- * @param {Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
- * @returns {Uint8Array|Uint8ClampedArray} RGBA data
+ * Set the RGBA data for a complete generation in a given array
+ * @param {Array|Uint8Array|Uint8ClampedArray} array Array to write the RGBA data into
+ * @protected
  */
-OverlappingModel.prototype.graphics = function (array) {
-    var result = array || new Uint8Array(this.FMX * this.FMY * 4),
+OverlappingModel.prototype.graphicsComplete = function (array) {
+    var pixelIndex = 0,
+        color,
+        x,
+        y,
+        t,
+        dx,
+        dy,
+        sx,
+        sy;
+
+    for (y = 0; y < this.FMY; y++) {
+        for (x = 0; x < this.FMX; x++) {
+            pixelIndex = (y * this.FMX + x) * 4;
+
+            for (t = 0; t < this.T; t++) {
+                if (this.wave[x][y][t]) {
+                    color = this.colors[this.patterns[t][0]];
+
+                    array[pixelIndex] = color[0];
+                    array[pixelIndex + 1] = color[1];
+                    array[pixelIndex + 2] = color[2];
+                    array[pixelIndex + 3] = color[3];
+                    break;
+                }
+            }
+        }
+    }
+};
+
+/**
+ * Set the RGBA data for an incomplete generation in a given array
+ * @param {Array|Uint8Array|Uint8ClampedArray} array Array to write the RGBA data into
+ * @protected
+ */
+OverlappingModel.prototype.graphicsIncomplete = function (array) {
+    var pixelIndex = 0,
         x,
         y,
         t,
@@ -370,6 +405,7 @@ OverlappingModel.prototype.graphics = function (array) {
     for (y = 0; y < this.FMY; y++) {
         for (x = 0; x < this.FMX; x++) {
             contributorNumber = r = g = b = a = 0;
+            pixelIndex = (y * this.FMX + x) * 4;
 
             for (dy = 0; dy < this.N; dy++) {
                 for (dx = 0; dx < this.N; dx++) {
@@ -402,14 +438,29 @@ OverlappingModel.prototype.graphics = function (array) {
                 }
             }
 
-            result[(y * this.FMX + x) * 4] = r / contributorNumber;
-            result[(y * this.FMX + x) * 4 + 1] = g / contributorNumber;
-            result[(y * this.FMX + x) * 4 + 2] = b / contributorNumber;
-            result[(y * this.FMX + x) * 4 + 3] = a / contributorNumber;
+            array[pixelIndex] = r / contributorNumber;
+            array[pixelIndex + 1] = g / contributorNumber;
+            array[pixelIndex + 2] = b / contributorNumber;
+            array[pixelIndex + 3] = a / contributorNumber;
         }
     }
+};
 
-    return result;
+/**
+ * Retrieve the RGBA data
+ * @param {Array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into (must already be set to the correct size), if not set a new Uint8Array will be created and returned
+ * @returns {Array|Uint8Array|Uint8ClampedArray} RGBA data
+ */
+OverlappingModel.prototype.graphics = function (array) {
+    array = array || new Uint8Array(this.FMX * this.FMY * 4);
+
+    if (this.isGenerationCompleted()) {
+        this.graphicsComplete(array);
+    } else {
+        this.graphicsIncomplete(array);
+    }
+
+    return array;
 };
 
 module.exports = OverlappingModel;
