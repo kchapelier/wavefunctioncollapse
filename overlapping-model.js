@@ -4,16 +4,16 @@ var Model = require('./model');
 
 /**
  *
- * @param {Uint8Array} data
- * @param {int} dataWidth
- * @param {int} dataHeight
- * @param {int} N
- * @param {int} width
- * @param {int} height
- * @param {boolean} periodicInput
- * @param {boolean} periodicOutput
- * @param {int} symmetry
- * @param {int} ground
+ * @param {Uint8Array} data The RGBA data of the source image
+ * @param {int} dataWidth The width of the source image
+ * @param {int} dataHeight The height of the source image
+ * @param {int} N Size of the patterns
+ * @param {int} width The width of the generation
+ * @param {int} height The height of the generation
+ * @param {boolean} periodicInput Whether the source image is to be considered as periodic / as a repeatable texture
+ * @param {boolean} periodicOutput Whether the generation should be periodic / a repeatable texture
+ * @param {int} symmetry Allowed symmetries from 1 (no symmetry) to 8 (all mirrored / rotated variations)
+ * @param {int} [ground=0] Id of the specific pattern to use as the bottom of the generation ( see https://github.com/mxgmn/WaveFunctionCollapse/issues/3#issuecomment-250995366 )
  * @constructor
  */
 var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N, width, height, periodicInput, periodicOutput, symmetry, ground) {
@@ -146,7 +146,7 @@ var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N
     }
 
     this.T = weightsKeys.length;
-    this.ground = (ground + this.T) % this.T;
+    this.ground = ground ? (ground + this.T) % this.T : 0;
 
     this.patterns = new Array(this.T);
     this.stationary = new Array(this.T);
@@ -454,7 +454,7 @@ OverlappingModel.prototype.graphicsIncomplete = function (array) {
 OverlappingModel.prototype.graphics = function (array) {
     array = array || new Uint8Array(this.FMX * this.FMY * 4);
 
-    if (this.isGenerationCompleted()) {
+    if (this.isGenerationComplete()) {
         this.graphicsComplete(array);
     } else {
         this.graphicsIncomplete(array);

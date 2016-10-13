@@ -4,11 +4,11 @@ var Model = require('./model');
 
 /**
  *
- * @param {object} data
- * @param {string} subsetName
- * @param {int} width
- * @param {int} height
- * @param {bool} periodic
+ * @param {object} data Tiles, subset and constraints definitions
+ * @param {string} subsetName Name of the subset to use from the data, use all tiles if falsy
+ * @param {int} width The width of the generation
+ * @param {int} height The height of the generation
+ * @param {bool} periodic Whether the source image is to be considered as periodic / as a repeatable texture
  * @constructor
  */
 var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, height, periodic) {
@@ -474,7 +474,7 @@ SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
 SimpleTiledModel.prototype.graphics = function (array, defaultColor) {
     array = array || new Uint8Array(this.FMX * this.tilesize * this.FMY * this.tilesize * 4);
 
-    if (this.isGenerationCompleted()) {
+    if (this.isGenerationComplete()) {
         this.graphicsComplete(array);
     } else {
         this.graphicsIncomplete(array, defaultColor);

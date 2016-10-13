@@ -5,7 +5,7 @@ var randomIndice = require('./random-indice');
 var Model = function Model () {};
 
 Model.prototype.initiliazedField = false;
-Model.prototype.completedGeneration = false;
+Model.prototype.generationComplete = false;
 
 Model.prototype.wave = null;
 Model.prototype.changes = null;
@@ -14,7 +14,6 @@ Model.prototype.stationary = null;
 Model.prototype.FMX = 0;
 Model.prototype.FMY = 0;
 Model.prototype.T = 0;
-Model.prototype.limit = 0;
 
 Model.prototype.periodic = false;
 
@@ -107,7 +106,7 @@ Model.prototype.singleIteration = function (rng) {
     var result = this.observe(rng);
 
     if (result !== null) {
-        this.completedGeneration = result;
+        this.generationComplete = result;
 
         return !!result;
     }
@@ -118,8 +117,8 @@ Model.prototype.singleIteration = function (rng) {
 };
 
 /**
- * Start the generation
- * @param {int} [iterations=0] Maximum number of iterations. 0 makes it iterate until the generation is completed or a contradiction is reached.
+ * Execute a fixed number of iterations. Stop when the generation is successful or reaches a contradiction.
+ * @param {int} [iterations=0] Maximum number of iterations to execute (0 = infinite)
  * @param {Function|null} [rng=Math.random] Random number generator function
  * @returns {boolean} Success
  */
@@ -146,7 +145,7 @@ Model.prototype.iterate = function (iterations, rng) {
 };
 
 /**
- * Execute a complete generation
+ * Execute a complete new generation
  * @param {Function|null} [rng=Math.random] Random number generator function
  * @returns {boolean} Success
  */
@@ -167,15 +166,15 @@ Model.prototype.generate = function (rng) {
 };
 
 /**
- * Check whether the generation is completed
+ * Check whether the previous generation completed successfully
  * @returns {boolean}
  */
-Model.prototype.isGenerationCompleted = function () {
-    return this.completedGeneration;
+Model.prototype.isGenerationComplete = function () {
+    return this.generationComplete;
 };
 
 /**
- * Clear the internal state
+ * Clear the internal state to start a new generation
  */
 Model.prototype.clear = function () {
     var x,
@@ -193,7 +192,7 @@ Model.prototype.clear = function () {
     }
 
     this.initiliazedField = true;
-    this.completedGeneration = false;
+    this.generationComplete = false;
 };
 
 module.exports = Model;
