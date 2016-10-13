@@ -1,10 +1,4 @@
-"use strict";
-
-var SimpleTiledModel = require('./index').SimpleTiledModel;
-
-var Jimp = require('jimp');
-
-var structure = {
+module.exports = {
     tilesize: 7,
     tiles: [
         { name:"bridge", path:"./data/castle/bridge.png", symmetry:"I" },
@@ -79,57 +73,3 @@ var structure = {
         { left:"wallriver 1", right:"wallroad 1" }
     ]
 };
-
-var addBitmapDataToStructure = function (structure, callback) {
-    var promises = [];
-
-    structure.tiles.map(function (tile) {
-        promises.push(Jimp.read(tile.path).then(function (result) {
-            tile.bitmap = new Uint8Array(result.bitmap.data);
-            return true;
-        }));
-    });
-
-    Promise.all(promises).then(function () {
-        callback(null, structure);
-    }, function (error) {
-        callback(error, null);
-    });
-};
-
-
-var seed = require('seed-random');
-
-addBitmapDataToStructure(structure, function (error, structure) {
-    console.log(error);
-
-    if (error) throw error;
-
-    console.log('HERE');
-
-    var destWidth = 20;
-    var destHeight = 20;
-
-    try {
-        var model = new SimpleTiledModel(structure, null, destWidth, destHeight, false);
-
-
-        var finished = model.iterate(200);
-
-        console.log(finished);
-
-        if (finished) {
-            var result = model.graphics(null, [255,255,0,255]);
-
-            var image = new Jimp(destWidth * structure.tilesize, destHeight * structure.tilesize, function (err, image) {
-                image.bitmap.data = new Buffer(result.buffer);
-                image.write("CastleTest.png");
-            });
-        }
-    } catch(e) {
-        console.log(e.stack);
-    }
-
-    //console.log(model);
-    console.log('THERE');
-});

@@ -1,0 +1,22 @@
+{
+  "name": "wavefunctioncollapse",
+  "version": "1.0.0",
+  "description": "Javascript port of https://github.com/mxgmn/WaveFunctionCollapse",
+  "main": "model.js",
+  "dependencies": {},
+  "devDependencies": {
+    "jimp": "0.2.27",
+    "seed-random": "2.2.0"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kchapelier/wavefunctioncollapse.git"
+  },
+  "author": "Kevin Chapelier",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kchapelier/wavefunctioncollapse/issues"
+  },
+  "homepage": "https://github.com/kchapelier/wavefunctioncollapse#readme"
+}
