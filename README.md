@@ -23,8 +23,8 @@ npm install wavefunctioncollapse --production
  - *dataWidth :* The width of the source image.
  - *dataHeight :* The height of the source image.
  - *N :* Size of the patterns.
- - *width :* The width of the generation.
- - *height :* The height of the generation.
+ - *width :* The width of the generation (in pixels).
+ - *height :* The height of the generation (in pixels).
  - *periodicInput :* Whether the source image is to be considered as periodic / as a repeatable texture.
  - *periodicOutput :* Whether the generation should be periodic / a repeatable texture.
  - *symmetry :* Allowed symmetries from 1 (no symmetry) to 8 (all mirrored / rotated variations)
@@ -59,20 +59,20 @@ canvasContext.putImageData(imgData, 0, 0);
 
 ### SimpleTiledModel Constructor
 
-**new SimpleTiledModel(data, subsetName, width, height, periodic)**
+**new SimpleTiledModel(data, subsetName, width, height, periodicOutput)**
 
  - *data :* Tiles, subset and constraints definitions. The proper doc on this matter is yet to be written, check the example in the meantime.
  - *subsbetName :* Name of the subset to use from the data. If falsy, use all tiles.
- - *width :* The width of the generation.
- - *height :* The height of the generation.
- - *periodic :* Whether the source image is to be considered as periodic / as a repeatable texture.
+ - *width :* The width of the generation (in tiles).
+ - *height :* The height of the generation (in tiles).
+ - *periodicOutput :* Whether the generation should be periodic / a repeatable texture.
 
 ```js
 var wfc = require('wavefunctioncollapse');
 
-var data = ... // see specific doc
+var data = ... // object with tiles, subsets and constraints definitions
 
-var model = new wfc.OverlappingModel(imgData.data, imgData.width, imgData.height, 3, 48, 48, true, true, 4);
+var model = new wfc.SimpleTiledModel(data, null, 48, 48, false);
 ```
 
 ### SimpleTiledModel Methods
@@ -125,12 +125,6 @@ Returns whether the previous generation completed successfully.
 **model.clear()**
 
 Clear the internal state to start a new generation.
-
-## TODO
-
-- Implement an iterative API on OverlappingModel (+ demo).
-- Implement an iterative API on SimpleTiledModel (+ demo).
-- Publish on npm.
 
 ## Changelog
 
