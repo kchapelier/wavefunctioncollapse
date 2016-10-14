@@ -2,8 +2,8 @@
 
 /**
  *
- * @param {float[]} array
- * @param {float} r
+ * @param {number[]} array
+ * @param {number} r
  */
 function randomIndice (array, r) {
     var sum = 0,

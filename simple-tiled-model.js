@@ -243,7 +243,6 @@ SimpleTiledModel.prototype.propagator = null;
 
 SimpleTiledModel.prototype.tiles = null;
 SimpleTiledModel.prototype.tilesize = 0;
-SimpleTiledModel.prototype.black = false;
 
 /**
  * @protected
@@ -384,6 +383,7 @@ SimpleTiledModel.prototype.graphicsComplete = function (array) {
                             array[pixelIndex + 1] = color[1];
                             array[pixelIndex + 2] = color[2];
                             array[pixelIndex + 3] = color[3];
+                            break;
                         }
                     }
                 }

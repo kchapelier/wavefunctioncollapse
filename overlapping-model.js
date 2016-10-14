@@ -340,8 +340,7 @@ OverlappingModel.prototype.clear = function () {
             }
         }
 
-        while (this.propagate()) {
-        }
+        while (this.propagate()) {}
     }
 };
 
@@ -355,11 +354,7 @@ OverlappingModel.prototype.graphicsComplete = function (array) {
         color,
         x,
         y,
-        t,
-        dx,
-        dy,
-        sx,
-        sy;
+        t;
 
     for (y = 0; y < this.FMY; y++) {
         for (x = 0; x < this.FMX; x++) {
