@@ -19,6 +19,15 @@
     "tilemap",
     "generation"
   ],
+  "files": [
+    "index.js",
+    "LICENSE",
+    "model.js",
+    "overlapping-model.js",
+    "simple-tiled-model.js",
+    "random-indice.js",
+    "README.md"
+  ],
   "author": "Kevin Chapelier",
   "license": "MIT",
   "bugs": {
