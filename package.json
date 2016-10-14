@@ -2,7 +2,7 @@
   "name": "wavefunctioncollapse",
   "version": "1.0.0",
   "description": "Javascript port of https://github.com/mxgmn/WaveFunctionCollapse",
-  "main": "model.js",
+  "main": "index.js",
   "dependencies": {},
   "devDependencies": {
     "jimp": "0.2.27",
@@ -13,6 +13,12 @@
     "type": "git",
     "url": "git+https://github.com/kchapelier/wavefunctioncollapse.git"
   },
+  "keywords": [
+    "pattern",
+    "bitmap",
+    "tilemap",
+    "generation"
+  ],
   "author": "Kevin Chapelier",
   "license": "MIT",
   "bugs": {

@@ -4,6 +4,7 @@ Javascript port of https://github.com/mxgmn/WaveFunctionCollapse
 
 - [Interactive OverlappingModel demo](http://www.kchapelier.com/wfc-example/overlapping-model.html)
 - [Interactive SimpleTiledModel demo](http://www.kchapelier.com/wfc-example/simple-tiled-model.html)
+- [Animated SimpleTiledModel demo](http://www.kchapelier.com/wfc-example/simple-tiled-model-animated.html)
 
 ## Installing
 
@@ -128,7 +129,7 @@ Clear the internal state to start a new generation.
 
 ## Changelog
 
-### [1.0.0](https://github.com/kchapelier/wavefunctioncollapse/tree/1.0.0) (2016-10-13)
+### [1.0.0](https://github.com/kchapelier/wavefunctioncollapse/tree/1.0.0) (2016-10-14)
 
  * Change and freeze the public API (with iteration support).
  * First publication on NPM.
