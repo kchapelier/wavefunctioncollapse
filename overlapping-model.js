@@ -168,7 +168,7 @@ var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N
 
         for (y = 0; y < this.FMY; y++) {
             this.wave[x][y] = new Array(this.T);
-            this.changes[x][y] = false;
+            this.changes[x][y] = 0;
             for (t = 0; t < this.T; t++) {
                 this.wave[x][y][t] = true;
             }
@@ -262,8 +262,8 @@ OverlappingModel.prototype.propagate = function () {
 
     for (x = 0; x < this.FMX; x++) {
         for (y = 0; y < this.FMY; y++) {
-            if (this.changes[x][y]) {
-                this.changes[x][y] = false;
+            if (this.changes[x][y] !== 0) {
+                this.changes[x][y] = 0;
                 for (dx = startLoop; dx < endLoop; dx++) {
                     for (dy = startLoop; dy < endLoop; dy++) {
                         sx = x + dx;
@@ -299,7 +299,7 @@ OverlappingModel.prototype.propagate = function () {
                             }
 
                             if (!b) {
-                                this.changes[sx][sy] = true;
+                                this.changes[sx][sy] = this.iteration;
                                 change = true;
                                 allowed[t] = false;
                             }
@@ -332,11 +332,11 @@ OverlappingModel.prototype.clear = function () {
                 }
             }
 
-            this.changes[x][this.FMY - 1] = true;
+            this.changes[x][this.FMY - 1] = this.iteration;
 
             for (y = 0; y < this.FMY - 1; y++) {
                 this.wave[x][y][this.ground] = false;
-                this.changes[x][y] = true;
+                this.changes[x][y] = this.iteration;
             }
         }
 

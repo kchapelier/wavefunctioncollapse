@@ -194,6 +194,7 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
         this.changes[x] = new Array(this.FMY);
 
         for (y = 0; y < this.FMY; y++) {
+            this.changes[x][y] = 0;
             this.wave[x][y] = new Array(this.T);
         }
     }
@@ -310,7 +311,7 @@ SimpleTiledModel.prototype.propagate = function () {
                     }
                 }
 
-                if (!this.changes[x1][y1]) {
+                if (this.changes[x1][y1] === 0) {
                     continue;
                 }
 
@@ -330,7 +331,7 @@ SimpleTiledModel.prototype.propagate = function () {
 
                         if (!b) {
                             wave2[t2] = false;
-                            this.changes[x2][y2] = true;
+                            this.changes[x2][y2] = this.iteration;
                             change = true;
                         }
                     }
@@ -399,7 +400,7 @@ SimpleTiledModel.prototype.graphicsComplete = function (array) {
  * @param {array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
  * @protected
  */
-SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
+SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor, startIteration) {
     var wave,
         amount,
         sum,
@@ -417,6 +418,10 @@ SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
 
     for (x = 0; x < this.FMX; x++) {
         for (y = 0; y < this.FMY; y++) {
+            if (this.changes[x][y] <= startIteration && startIteration > 0) {
+                continue;
+            }
+
             wave = this.wave[x][y];
             amount = 0;
             sum = 0;
@@ -481,6 +486,11 @@ SimpleTiledModel.prototype.graphics = function (array, defaultColor) {
     }
 
     return array;
+};
+
+SimpleTiledModel.prototype.iterativeGraphics = function(array, defaultColor, startIteration) {
+    this.graphicsIncomplete(array, defaultColor, startIteration);
+    return this.iteration;
 };
 
 module.exports = SimpleTiledModel;

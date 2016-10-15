@@ -4,6 +4,8 @@ var randomIndice = require('./random-indice');
 
 var Model = function Model () {};
 
+Model.prototype.iteration = 0;
+
 Model.prototype.initiliazedField = false;
 Model.prototype.generationComplete = false;
 
@@ -91,7 +93,7 @@ Model.prototype.observe = function (rng) {
         this.wave[argminx][argminy][t] = (t === r);
     }
 
-    this.changes[argminx][argminy] = true;
+    this.changes[argminx][argminy] = this.iteration;
 
     return null;
 };
@@ -103,6 +105,8 @@ Model.prototype.observe = function (rng) {
  * @returns {*}
  */
 Model.prototype.singleIteration = function (rng) {
+    this.iteration = this.iteration + 1;
+
     var result = this.observe(rng);
 
     if (result !== null) {
@@ -187,9 +191,11 @@ Model.prototype.clear = function () {
                 this.wave[x][y][t] = true;
             }
 
-            this.changes[x][y] = false;
+            this.changes[x][y] = 0;
         }
     }
+
+    this.iteration = 0;
 
     this.initiliazedField = true;
     this.generationComplete = false;
