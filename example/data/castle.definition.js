@@ -1,17 +1,18 @@
 module.exports = {
+    path: './data/castle/',
     tilesize: 7,
     tiles: [
-        { name:"bridge", path:"./data/castle/bridge.png", symmetry:"I" },
-        { name:"ground", path:"./data/castle/ground.png", symmetry:"X" },
-        { name:"river", path:"./data/castle/river.png", symmetry:"I" },
-        { name:"riverturn", path:"./data/castle/riverturn.png", symmetry:"L" },
-        { name:"road", path:"./data/castle/road.png", symmetry:"I" },
-        { name:"roadturn", path:"./data/castle/roadturn.png", symmetry:"L" },
-        { name:"t", path:"./data/castle/t.png", symmetry:"T" },
-        { name:"tower", path:"./data/castle/tower.png", symmetry:"L" },
-        { name:"wall", path:"./data/castle/wall.png", symmetry:"I" },
-        { name:"wallriver", path:"./data/castle/wallriver.png", symmetry:"I" },
-        { name:"wallroad", path:"./data/castle/wallroad.png", symmetry:"I" }
+        { name:"bridge", symmetry:"I" },
+        { name:"ground", symmetry:"X" },
+        { name:"river", symmetry:"I" },
+        { name:"riverturn", symmetry:"L" },
+        { name:"road", symmetry:"I" },
+        { name:"roadturn", symmetry:"L" },
+        { name:"t", symmetry:"T" },
+        { name:"tower", symmetry:"L" },
+        { name:"wall", symmetry:"I" },
+        { name:"wallriver", symmetry:"I" },
+        { name:"wallroad", symmetry:"I" }
     ],
     neighbors: [
         { left:"bridge 1", right:"river 1" },
