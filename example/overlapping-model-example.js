@@ -2,7 +2,7 @@
 
 var OverlappingModel = require('./../index').OverlappingModel,
     Jimp = require('jimp'),
-    seed = require('seed-random');
+    lcg = require('./lcg');
 
 Jimp.read('./data/flowers.bmp', function (err, sourceImage) {
     if (err) {
@@ -18,7 +18,7 @@ Jimp.read('./data/flowers.bmp', function (err, sourceImage) {
     var model = new OverlappingModel(data, width, height, 3, destWidth, destHeight, true, true, 2, 102);
 
     var time = Date.now();
-    var finished = model.generate(seed('test'));
+    var finished = model.generate(lcg('test'));
 
     console.log(finished ? 'Generation successful' : 'Generation unsuccessful');
     console.log(Date.now() - time, 'ms');

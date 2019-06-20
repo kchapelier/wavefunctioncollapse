@@ -5,8 +5,7 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
-    "jimp": "0.2.27",
-    "seed-random": "2.2.0"
+    "jimp": "0.6.4"
   },
   "scripts": {},
   "repository": {

@@ -2,7 +2,7 @@
 
 var SimpleTiledModel = require('./../index').SimpleTiledModel,
     Jimp = require('jimp'),
-    seed = require('seed-random');
+    lcg = require('./lcg');
 
 var definition = require('./data/castle.definition.js');
 
@@ -64,7 +64,7 @@ addBitmapDataToStructure(definition, function (err, definition) {
         var model = new SimpleTiledModel(definition, null, destWidth, destHeight, false);
 
         var time = Date.now();
-        var finished = model.generate(seed('test2'));
+        var finished = model.generate(lcg('test22'));
 
         console.log(finished ? 'Generation successful' : 'Generation unsuccessful');
         console.log(Date.now() - time, 'ms');
