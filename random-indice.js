@@ -7,28 +7,17 @@
  */
 function randomIndice (array, r) {
     var sum = 0,
-        i,
-        x;
+        i = 0,
+        x = 0;
 
-    for (i = 0; i < array.length; i++) {
+    for (; i < array.length; i++) {
         sum += array[i];
     }
 
-    if (sum === 0) {
-        for (i = 0; i < array.length; i++) {
-            array[i] = 1;
-        }
+    i = 0;
+    r *= sum;
 
-        sum = array.length;
-    }
-
-    for (i = 0; i < array.length; i++) {
-        array[i] /= sum;
-    }
-
-    i = x = 0;
-
-    while (i < array.length) {
+    while (r && i < array.length) {
         x += array[i];
         if (r <= x) {
             return i;
