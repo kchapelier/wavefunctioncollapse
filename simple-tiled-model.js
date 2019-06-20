@@ -175,6 +175,7 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
 
     this.T = action.length;
 
+    this.distribution = new Array(this.T);
     this.propagator = new Array(4);
 
     for (i = 0; i < 4; i++) {

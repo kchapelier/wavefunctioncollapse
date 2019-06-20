@@ -10,6 +10,7 @@ Model.prototype.generationComplete = false;
 Model.prototype.wave = null;
 Model.prototype.changes = null;
 Model.prototype.stationary = null;
+Model.prototype.distribution = null;
 
 Model.prototype.FMX = 0;
 Model.prototype.FMY = 0;
@@ -27,7 +28,7 @@ Model.prototype.observe = function (rng) {
     var min = 1000,
         argminx = -1,
         argminy = -1,
-        distribution = new Array(this.T),
+        distribution = this.distribution,
         entropy,
         noise,
         sum,

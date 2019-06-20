@@ -148,6 +148,7 @@ var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N
     this.T = weightsKeys.length;
     this.ground = ground ? (ground + this.T) % this.T : 0;
 
+    this.distribution = new Array(this.T);
     this.patterns = new Array(this.T);
     this.stationary = new Array(this.T);
     this.propagator = new Array(this.T);
