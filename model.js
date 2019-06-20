@@ -91,7 +91,7 @@ Model.prototype.observe = function (rng) {
         this.wave[argminx][argminy][t] = (t === r);
     }
 
-    this.changes[argminx][argminy] = true;
+    this.changes[argminx * this.FMY + argminy] = 1;
 
     return null;
 };
@@ -177,6 +177,8 @@ Model.prototype.isGenerationComplete = function () {
  * Clear the internal state to start a new generation
  */
 Model.prototype.clear = function () {
+    //console.time('Model.clear');
+
     var x,
         y,
         t;
@@ -187,12 +189,13 @@ Model.prototype.clear = function () {
                 this.wave[x][y][t] = true;
             }
 
-            this.changes[x][y] = false;
+            this.changes[x * this.FMY + y] = 0;
         }
     }
 
     this.initiliazedField = true;
     this.generationComplete = false;
+    //console.timeEnd('Model.clear');
 };
 
 module.exports = Model;

@@ -188,10 +188,9 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
     }
 
     this.wave = new Array(this.FMX);
-    this.changes = new Array(this.FMX);
+    this.changes = new Uint8Array(this.FMX * this.FMY);
     for (x = 0; x < this.FMX; x++) {
         this.wave[x] = new Array(this.FMY);
-        this.changes[x] = new Array(this.FMY);
 
         for (y = 0; y < this.FMY; y++) {
             this.wave[x][y] = new Array(this.T);
@@ -310,7 +309,7 @@ SimpleTiledModel.prototype.propagate = function () {
                     }
                 }
 
-                if (!this.changes[x1][y1]) {
+                if (this.changes[x1 * this.FMY + y1] === 0) {
                     continue;
                 }
 
@@ -330,7 +329,7 @@ SimpleTiledModel.prototype.propagate = function () {
 
                         if (!b) {
                             wave2[t2] = false;
-                            this.changes[x2][y2] = true;
+                            this.changes[x2 * this.FMY + y2] = 1;
                             change = true;
                         }
                     }

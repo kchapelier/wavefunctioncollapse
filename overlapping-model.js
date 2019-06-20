@@ -160,15 +160,13 @@ var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N
     }
 
     this.wave = new Array(this.FMX);
-    this.changes = new Array(this.FMX);
+    this.changes = new Uint8Array(this.FMX * this.FMY);
 
     for (x = 0; x < this.FMX; x++) {
         this.wave[x] = new Array(this.FMY);
-        this.changes[x] = new Array(this.FMY);
 
         for (y = 0; y < this.FMY; y++) {
             this.wave[x][y] = new Array(this.T);
-            this.changes[x][y] = false;
             for (t = 0; t < this.T; t++) {
                 this.wave[x][y][t] = true;
             }
@@ -262,8 +260,8 @@ OverlappingModel.prototype.propagate = function () {
 
     for (x = 0; x < this.FMX; x++) {
         for (y = 0; y < this.FMY; y++) {
-            if (this.changes[x][y]) {
-                this.changes[x][y] = false;
+            if (this.changes[x * this.FMY + y] === 1) {
+                this.changes[x * this.FMY + y] = 0;
                 for (dx = startLoop; dx < endLoop; dx++) {
                     for (dy = startLoop; dy < endLoop; dy++) {
                         sx = x + dx;
@@ -299,7 +297,7 @@ OverlappingModel.prototype.propagate = function () {
                             }
 
                             if (!b) {
-                                this.changes[sx][sy] = true;
+                                this.changes[sx * this.FMY + sy] = 1;
                                 change = true;
                                 allowed[t] = false;
                             }
@@ -324,24 +322,26 @@ OverlappingModel.prototype.clear = function () {
 
     Model.prototype.clear.call(this);
 
+    //console.time('OverlappingModel.clearGround');
     if (this.ground !== 0) {
         for (x = 0; x < this.FMX; x++) {
             for (t = 0; t < this.T; t++) {
-                if (t != this.ground) {
+                if (t !== this.ground) {
                     this.wave[x][this.FMY - 1][t] = false;
                 }
             }
 
-            this.changes[x][this.FMY - 1] = true;
+            this.changes[x * this.FMY + this.FMY - 1] = 1;
 
             for (y = 0; y < this.FMY - 1; y++) {
                 this.wave[x][y][this.ground] = false;
-                this.changes[x][y] = true;
+                this.changes[x * this.FMY + y] = 1;
             }
         }
 
         while (this.propagate()) {}
     }
+    //console.timeEnd('OverlappingModel.clearGround');
 };
 
 /**
@@ -350,6 +350,7 @@ OverlappingModel.prototype.clear = function () {
  * @protected
  */
 OverlappingModel.prototype.graphicsComplete = function (array) {
+    //console.time('graphicsComplete');
     var pixelIndex = 0,
         color,
         x,
@@ -373,6 +374,8 @@ OverlappingModel.prototype.graphicsComplete = function (array) {
             }
         }
     }
+
+    //console.timeEnd('graphicsComplete');
 };
 
 /**
