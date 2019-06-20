@@ -188,15 +188,11 @@ var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, heigh
         }
     }
 
-    this.wave = new Array(this.FMX);
-    this.changes = new Uint8Array(this.FMX * this.FMY);
-    for (x = 0; x < this.FMX; x++) {
-        this.wave[x] = new Array(this.FMY);
+    this.waveStrideX = this.FMY * this.T;
+    this.waveStrideY = this.T;
 
-        for (y = 0; y < this.FMY; y++) {
-            this.wave[x][y] = new Array(this.T);
-        }
-    }
+    this.wave = new Uint8Array(this.FMX * this.FMY * this.T);
+    this.changes = new Uint8Array(this.FMX * this.FMY);
 
     for (i = 0; i < data.neighbors.length; i++) {
         neighbor = data.neighbors[i];
@@ -314,22 +310,22 @@ SimpleTiledModel.prototype.propagate = function () {
                     continue;
                 }
 
-                wave1 = this.wave[x1][y1];
-                wave2 = this.wave[x2][y2];
+                wave1 = x1 * this.waveStrideX + y1 * this.waveStrideY;
+                wave2 = x2 * this.waveStrideX + y2 * this.waveStrideY;
 
                 for (t2 = 0; t2 < this.T; t2++) {
-                    if (wave2[t2]) {
+                    if (this.wave[wave2 + t2] === 1) {
                         prop = this.propagator[d][t2];
                         b = false;
 
                         for (t1 = 0; t1 < this.T && !b; t1++) {
-                            if (wave1[t1]) {
+                            if (this.wave[wave1 + t1] === 1) {
                                 b = prop[t1];
                             }
                         }
 
                         if (!b) {
-                            wave2[t2] = false;
+                            this.wave[wave2 + t2] = 0;
                             this.changes[x2 * this.FMY + y2] = 1;
                             change = true;
                         }
@@ -370,14 +366,14 @@ SimpleTiledModel.prototype.graphicsComplete = function (array) {
 
     for (x = 0; x < this.FMX; x++) {
         for (y = 0; y < this.FMY; y++) {
-            wave = this.wave[x][y];
+            wave = x * this.waveStrideX + y * this.waveStrideY;
 
             for (yt = 0; yt < this.tilesize; yt++) {
                 for (xt = 0; xt < this.tilesize; xt++) {
                     pixelIndex = (x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4;
 
                     for (t = 0; t < this.T; t++) {
-                        if (this.wave[x][y][t]) {
+                        if (this.wave[wave + t]) {
                             color = this.tiles[t][yt * this.tilesize + xt];
                             array[pixelIndex] = color[0];
                             array[pixelIndex + 1] = color[1];
@@ -417,12 +413,12 @@ SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
 
     for (x = 0; x < this.FMX; x++) {
         for (y = 0; y < this.FMY; y++) {
-            wave = this.wave[x][y];
+            wave = x * this.waveStrideX + y * this.waveStrideY;
             amount = 0;
             sum = 0;
 
-            for (t = 0; t < wave.length; t++) {
-                if (wave[t]) {
+            for (t = 0; t < this.T; t++) {
+                if (this.wave[wave + t] === 1) {
                     amount += 1;
                     sum += this.stationary[t];
                 }
@@ -444,7 +440,7 @@ SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
                         a = 0;
 
                         for (t = 0; t < this.T; t++) {
-                            if (this.wave[x][y][t]) {
+                            if (this.wave[x * this.waveStrideX + y * this.waveStrideY + t]) {
                                 color = this.tiles[t][yt * this.tilesize + xt];
                                 r += color[0] * this.stationary[t];
                                 g += color[1] * this.stationary[t];

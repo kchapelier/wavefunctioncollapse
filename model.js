@@ -32,14 +32,12 @@ Model.prototype.observe = function (rng) {
         entropy,
         noise,
         sum,
-        wavex,
         r,
         x,
         y,
         t;
 
     for (x = 0; x < this.FMX; x++) {
-        wavex = this.wave[x];
         for (y = 0; y < this.FMY; y++) {
             if (this.onBoundary(x, y)) {
                 continue;
@@ -48,7 +46,7 @@ Model.prototype.observe = function (rng) {
             sum = 0;
 
             for (t = 0; t < this.T; t++) {
-                distribution[t] = wavex[y][t] ? this.stationary[t] : 0;
+                distribution[t] = this.wave[x * this.waveStrideX + y * this.waveStrideY + t] ? this.stationary[t] : 0;
                 sum+= distribution[t];
             }
 
@@ -84,12 +82,12 @@ Model.prototype.observe = function (rng) {
     }
 
     for (t = 0; t < this.T; t++) {
-        distribution[t] = this.wave[argminx][argminy][t] ? this.stationary[t] : 0;
+        distribution[t] = this.wave[argminx * this.waveStrideX + argminy * this.waveStrideY + t] ? this.stationary[t] : 0;
     }
 
     r = randomIndice(distribution, rng());
     for (t = 0; t < this.T; t++) {
-        this.wave[argminx][argminy][t] = (t === r);
+        this.wave[argminx * this.waveStrideX + argminy * this.waveStrideY + t] = (t === r);
     }
 
     this.changes[argminx * this.FMY + argminy] = 1;
@@ -187,7 +185,7 @@ Model.prototype.clear = function () {
     for (x = 0; x < this.FMX; x++) {
         for (y = 0; y < this.FMY; y++) {
             for (t = 0; t < this.T; t++) {
-                this.wave[x][y][t] = true;
+                this.wave[x * this.waveStrideX + y * this.waveStrideY + t] = true;
             }
 
             this.changes[x * this.FMY + y] = 0;

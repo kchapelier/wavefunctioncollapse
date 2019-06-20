@@ -160,18 +160,14 @@ var OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N
         this.stationary[i] = weights[w];
     }
 
-    this.wave = new Array(this.FMX);
+    this.waveStrideX = this.FMY * this.T;
+    this.waveStrideY = this.T;
+
+    this.wave = new Uint8Array(this.FMX * this.FMY * this.T);
     this.changes = new Uint8Array(this.FMX * this.FMY);
 
-    for (x = 0; x < this.FMX; x++) {
-        this.wave[x] = new Array(this.FMY);
-
-        for (y = 0; y < this.FMY; y++) {
-            this.wave[x][y] = new Array(this.T);
-            for (t = 0; t < this.T; t++) {
-                this.wave[x][y][t] = true;
-            }
-        }
+    for (i = 0; i < this.wave.length; i++) {
+      this.wave[i] = 1;
     }
 
     var agrees = function agrees (p1, p2, dx, dy) {
@@ -284,23 +280,23 @@ OverlappingModel.prototype.propagate = function () {
                             continue;
                         }
 
-                        allowed = this.wave[sx][sy];
+                        allowed = sx * this.waveStrideX + sy * this.waveStrideY;
 
                         for (t = 0; t < this.T; t++) {
-                            if (!allowed[t]) {
+                            if (this.wave[allowed + t] === 0) {
                                 continue;
                             }
 
-                            b = false;
+                            b = 0;
                             prop = this.propagator[t][this.N - 1 - dx][this.N - 1 - dy];
                             for (i = 0; i < prop.length && !b; i++) {
-                                b = this.wave[x][y][prop[i]];
+                                b = this.wave[x * this.waveStrideX + y * this.waveStrideY + prop[i]];
                             }
 
-                            if (!b) {
+                            if (b === 0) {
                                 this.changes[sx * this.FMY + sy] = 1;
                                 change = true;
-                                allowed[t] = false;
+                                this.wave[allowed + t] = 0;
                             }
                         }
                     }
@@ -328,14 +324,14 @@ OverlappingModel.prototype.clear = function () {
         for (x = 0; x < this.FMX; x++) {
             for (t = 0; t < this.T; t++) {
                 if (t !== this.ground) {
-                    this.wave[x][this.FMY - 1][t] = false;
+                    this.wave[x * this.waveStrideX + (this.FMY - 1) * this.waveStrideY + t] = 0;
                 }
             }
 
             this.changes[x * this.FMY + this.FMY - 1] = 1;
 
             for (y = 0; y < this.FMY - 1; y++) {
-                this.wave[x][y][this.ground] = false;
+                this.wave[x * this.waveStrideX + y * this.waveStrideY + this.ground] = 0;
                 this.changes[x * this.FMY + y] = 1;
             }
         }
@@ -363,7 +359,7 @@ OverlappingModel.prototype.graphicsComplete = function (array) {
             pixelIndex = (y * this.FMX + x) * 4;
 
             for (t = 0; t < this.T; t++) {
-                if (this.wave[x][y][t]) {
+                if (this.wave[x * this.waveStrideX + y * this.waveStrideY + t]) {
                     color = this.colors[this.patterns[t][0]];
 
                     array[pixelIndex] = color[0];
@@ -423,7 +419,7 @@ OverlappingModel.prototype.graphicsIncomplete = function (array) {
                     }
 
                     for (t = 0; t < this.T; t++) {
-                        if (this.wave[sx][sy][t]) {
+                        if (this.wave[sx * this.waveStrideX + sy * this.waveStrideY + t]) {
                             contributorNumber++;
 
                             color = this.colors[this.patterns[t][dx + dy * this.N]];
