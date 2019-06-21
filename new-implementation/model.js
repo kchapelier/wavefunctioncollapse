@@ -1,6 +1,6 @@
 "use strict";
 
-var randomIndice = require('./random-indice');
+var randomIndice = require('./../random-indice');
 
 var Model = function Model () {};
 
@@ -18,14 +18,14 @@ Model.prototype.initialize = function () {
     }
   }
 
-  this.waveLogWeights = new Array(this.T);
+  this.weightLogWeights = new Array(this.T);
   this.sumOfWeights = 0;
   this.sumOfWeightLogWeights = 0;
 
   for (var t = 0; t < this.T; t++) {
-    this.waveLogWeights[t] = this.weights[t] * Math.log(this.weights[t]);
+    this.weightLogWeights[t] = this.weights[t] * Math.log(this.weights[t]);
     this.sumOfWeights += this.weights[t];
-    this.sumOfWeightLogWeights += this.waveLogWeights[t];
+    this.sumOfWeightLogWeights += this.weightLogWeights[t];
   }
 
   this.startingEntropy = Math.log(this.sumOfWeights) - this.sumOfWeightLogWeights / this.sumOfWeights;
@@ -105,6 +105,9 @@ Model.prototype.propagate = function () {
       var dx = this.DX[d];
       var dy = this.DY[d];
 
+      var x2 = x1 + dx;
+      var y2 = y1 + dy;
+
       if (this.onBoundary(x2, y2)) continue;
 
       if (x2 < 0) x2 += this.FMX;
@@ -129,12 +132,13 @@ Model.prototype.propagate = function () {
 Model.prototype.run = function (rng, limit) {
   //TODO must replicate the current generate / iterate / singleIteration API of the module
 
-  if (this.wave === null) this.initialize();
+  if (!this.wave) this.initialize();
 
   this.clear();
   rng = rng || Math.random;
+  limit = limit || 0;
 
-  for (var l = 0; l < limit; l++) {
+  for (var l = 0; l < limit || limit === 0; l++) {
     var result = this.observe(rng);
     if (result !== null) return result;
     this.propagate();

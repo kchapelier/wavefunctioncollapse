@@ -100,8 +100,8 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
   var weights = {};
   var weightsKeys = []; // Object.keys won't preserve the order of creation, so we store them separately in an array
 
-  for (y = 0; y < (periodicInput ? dataHeight : dataHeight - N + 1); y++) {
-    for (x = 0; x < (periodicInput ? dataWidth : dataWidth - N + 1); x++) {
+  for (var y = 0; y < (periodicInput ? dataHeight : dataHeight - N + 1); y++) {
+    for (var x = 0; x < (periodicInput ? dataWidth : dataWidth - N + 1); x++) {
       var ps = new Array(8);
       ps[0] = patternFromSample(x, y);
       ps[1] = reflect(ps[0]);
@@ -112,7 +112,7 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
       ps[6] = rotate(ps[4]);
       ps[7] = reflect(ps[6]);
 
-      for (k = 0; k < symmetry; k++) {
+      for (var k = 0; k < symmetry; k++) {
         var ind = index(ps[k]);
 
         if (!!weights[ind]) {
