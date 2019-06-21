@@ -2,10 +2,7 @@
 
 var randomIndice = require('./random-indice');
 
-var Model = function Model (width, height) {
-  this.FMX = width;
-  this.FMY = height;
-};
+var Model = function Model () {};
 
 Model.prototype.initialize = function () {
 
