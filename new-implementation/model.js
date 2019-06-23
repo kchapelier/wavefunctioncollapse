@@ -4,6 +4,9 @@ var randomIndice = require('./../random-indice');
 
 var Model = function Model () {};
 
+Model.prototype.initiliazedField = false;
+Model.prototype.generationComplete = false;
+
 Model.prototype.initialize = function () {
 
   this.wave = new Array(this.FMX * this.FMY);
@@ -129,22 +132,64 @@ Model.prototype.propagate = function () {
   }
 };
 
-Model.prototype.run = function (rng, limit) {
-  //TODO must replicate the current generate / iterate / singleIteration API of the module
+Model.prototype.singleIteration = function (rng) {
+  var result = this.observe(rng);
+
+  if (result !== null) {
+    this.generationComplete = result;
+
+    return !!result;
+  }
+
+  this.propagate();
+
+  return null;
+};
+
+Model.prototype.iterate = function (iterations, rng) {
+  var result;
+  var i;
+
+  if (!this.wave) this.initialize();
+
+  if (!this.initiliazedField) {
+    this.clear();
+  }
+
+  iterations = iterations || 0;
+  rng = rng || Math.random;
+
+  for (i = 0; i < iterations || iterations === 0; i++) {
+    result = this.singleIteration(rng);
+
+    if (result !== null) {
+      return !!result;
+    }
+  }
+
+  return true;
+};
+
+Model.prototype.generate = function (rng) {
+  var result;
+
+  rng = rng || Math.random;
 
   if (!this.wave) this.initialize();
 
   this.clear();
-  rng = rng || Math.random;
-  limit = limit || 0;
 
-  for (var l = 0; l < limit || limit === 0; l++) {
-    var result = this.observe(rng);
-    if (result !== null) return result;
-    this.propagate();
+  while(true) {
+    result = this.singleIteration(rng);
+
+    if (result !== null) {
+      return !!result;
+    }
   }
+};
 
-  return true;
+Model.prototype.isGenerationComplete = function () {
+  return this.generationComplete;
 };
 
 Model.prototype.ban = function (i, t) {
@@ -177,6 +222,9 @@ Model.prototype.clear = function () {
     this.sumsOfWeightLogWeights[i] = this.sumOfWeightLogWeights;
     this.entropies[i] = this.startingEntropy;
   }
+
+  this.initiliazedField = true;
+  this.generationComplete = false;
 };
 
 Model.prototype.DX = [-1, 0, 1, 0];
