@@ -1,6 +1,6 @@
 "use strict";
 
-var Model = require('./model');
+const Model = require('./model');
 
 /**
  *
@@ -17,7 +17,7 @@ var Model = require('./model');
  *
  * @constructor
  */
-function OverlappingModel (data, dataWidth, dataHeight, N, width, height, periodicInput, periodicOutput, symmetry, ground) {
+const OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight, N, width, height, periodicInput, periodicOutput, symmetry, ground) {
   ground = ground || 0;
 
   this.N = N;
@@ -25,21 +25,21 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
   this.FMY = height;
   this.periodic = periodicOutput;
 
-  var SMX = dataWidth;
-  var SMY = dataHeight;
-  var sample = new Array(SMX);
-  for (var i = 0; i < SMX; i++) {
+  const SMX = dataWidth;
+  const SMY = dataHeight;
+  const sample = new Array(SMX);
+  for (let i = 0; i < SMX; i++) {
     sample[i] = new Array(dataHeight);
   }
 
   this.colors = new Array();
-  var colorMap = {};
+  const colorMap = {};
 
-  for (var y = 0; y < dataHeight; y++) {
-    for (var x = 0; x < dataWidth; x++) {
-      var indexPixel = (y * dataWidth + x) * 4;
-      var color = [data[indexPixel], data[indexPixel + 1], data[indexPixel + 2], data[indexPixel + 3]];
-      var colorMapIndex = color.join('-');
+  for (let y = 0; y < dataHeight; y++) {
+    for (let x = 0; x < dataWidth; x++) {
+      const indexPixel = (y * dataWidth + x) * 4;
+      const color = [data[indexPixel], data[indexPixel + 1], data[indexPixel + 2], data[indexPixel + 3]];
+      const colorMapIndex = color.join('-');
 
       if (!colorMap.hasOwnProperty(colorMapIndex)) {
         colorMap[colorMapIndex] = this.colors.length;
@@ -50,13 +50,13 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
     }
   }
 
-  var C = this.colors.length;
-  var W = Math.pow(C, N * N);
+  const C = this.colors.length;
+  const W = Math.pow(C, N * N);
 
-  var pattern = function pattern (f) {
-    var result = new Array(N * N);
-    for (var y = 0; y < N; y++) {
-      for (var x = 0; x < N; x++) {
+  const pattern = function pattern (f) {
+    let result = new Array(N * N);
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
         result[x + y * N] = f(x, y);
       }
     }
@@ -64,29 +64,29 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
     return result;
   };
 
-  var patternFromSample = function patternFromSample (x, y) {
+  const patternFromSample = function patternFromSample (x, y) {
     return pattern(function (dx, dy) {
       return sample[(x + dx) % dataWidth][(y + dy) % dataHeight];
     });
   };
 
-  var rotate = function rotate (p) {
+  const rotate = function rotate (p) {
     return pattern(function (x, y) {
       return p[N - 1 - y + x * N];
     });
   };
 
-  var reflect = function reflect (p) {
+  const reflect = function reflect (p) {
     return pattern(function (x, y) {
       return p[N - 1 - x + y * N];
     });
   };
 
-  var index = function index (p) {
-    var result = 0,
-      power = 1;
+  const index = function index (p) {
+    let result = 0;
+    let power = 1;
 
-    for (var i = 0; i < p.length; i++) {
+    for (let i = 0; i < p.length; i++) {
       result += p[p.length - 1 - i] * power;
       power *= C;
     }
@@ -94,14 +94,14 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
     return result;
   };
 
-  var patternFromIndex = function patternFromIndex (ind) {
-    var residue = ind,
-      power = W,
-      result = new Array(N * N);
+  const patternFromIndex = function patternFromIndex (ind) {
+    let residue = ind;
+    let power = W;
+    const result = new Array(N * N);
 
-    for (var i = 0; i < result.length; i++) {
+    for (let i = 0; i < result.length; i++) {
       power /= C;
-      var count = 0;
+      let count = 0;
 
       while (residue >= power) {
         residue -= power;
@@ -114,12 +114,12 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
     return result;
   };
 
-  var weights = {};
-  var weightsKeys = []; // Object.keys won't preserve the order of creation, so we store them separately in an array
+  const weights = {};
+  const weightsKeys = []; // Object.keys won't preserve the order of creation, so we store them separately in an array
 
-  for (var y = 0; y < (periodicInput ? dataHeight : dataHeight - N + 1); y++) {
-    for (var x = 0; x < (periodicInput ? dataWidth : dataWidth - N + 1); x++) {
-      var ps = new Array(8);
+  for (let y = 0; y < (periodicInput ? dataHeight : dataHeight - N + 1); y++) {
+    for (let x = 0; x < (periodicInput ? dataWidth : dataWidth - N + 1); x++) {
+      const ps = new Array(8);
       ps[0] = patternFromSample(x, y);
       ps[1] = reflect(ps[0]);
       ps[2] = rotate(ps[0]);
@@ -129,8 +129,8 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
       ps[6] = rotate(ps[4]);
       ps[7] = reflect(ps[6]);
 
-      for (var k = 0; k < symmetry; k++) {
-        var ind = index(ps[k]);
+      for (let k = 0; k < symmetry; k++) {
+        const ind = index(ps[k]);
 
         if (!!weights[ind]) {
           weights[ind]++;
@@ -147,21 +147,21 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
   this.patterns = new Array(this.T);
   this.weights = new Array(this.T);
 
-  for (i = 0; i < this.T; i++) {
-    var w = parseInt(weightsKeys[i], 10);
+  for (let i = 0; i < this.T; i++) {
+    const w = parseInt(weightsKeys[i], 10);
 
     this.patterns[i] = patternFromIndex(w);
     this.weights[i] = weights[w]
   }
 
-  var agrees = function agrees (p1, p2, dx, dy) {
-    var xmin = dx < 0 ? 0 : dx;
-    var xmax = dx < 0 ? dx + N : N;
-    var ymin = dy < 0 ? 0 : dy;
-    var ymax = dy < 0 ? dy + N : N;
+  const agrees = function agrees (p1, p2, dx, dy) {
+    const xmin = dx < 0 ? 0 : dx;
+    const xmax = dx < 0 ? dx + N : N;
+    const ymin = dy < 0 ? 0 : dy;
+    const ymax = dy < 0 ? dy + N : N;
 
-    for (var y = ymin; y < ymax; y++) {
-      for (var x = xmin; x < xmax; x++) {
+    for (let y = ymin; y < ymax; y++) {
+      for (let x = xmin; x < xmax; x++) {
         if (p1[x + N * y] != p2[x - dx + N * (y - dy)]) {
           return false;
         }
@@ -173,12 +173,12 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
 
   this.propagator = new Array(4);
 
-  for (var d = 0; d < 4; d++) {
+  for (let d = 0; d < 4; d++) {
     this.propagator[d] = new Array(this.T);
-    for (var t = 0; t < this.T; t++) {
-      var list = new Array();
+    for (let t = 0; t < this.T; t++) {
+      const list = new Array();
 
-      for (var t2 = 0; t2 < this.T; t2++) {
+      for (let t2 = 0; t2 < this.T; t2++) {
         if (agrees(this.patterns[t], this.patterns[t2], this.DX[d], this.DY[d])) {
           list.push(t2);
         }
@@ -187,7 +187,7 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
       this.propagator[d][t] = list;
     }
   }
-}
+};
 
 OverlappingModel.prototype = Object.create(Model.prototype);
 OverlappingModel.prototype.constructor = OverlappingModel;
@@ -213,9 +213,16 @@ OverlappingModel.prototype.clear = function () {
   Model.prototype.clear.call(this);
 
   if (this.ground !== 0) {
-    for (var x = 0; x < this.FMX; x++) {
-      for (var t = 0; t < this.T; t++) if (t !== this.ground) this.ban(x + (this.FMY - 1) * this.FMX, t);
-      for (var y = 0; y < this.FMY - 1; y++) this.ban(x + y * this.FMX, this.ground);
+    for (let x = 0; x < this.FMX; x++) {
+      for (let t = 0; t < this.T; t++) {
+        if (t !== this.ground) {
+          this.ban(x + (this.FMY - 1) * this.FMX, t);
+        }
+      }
+
+      for (let y = 0; y < this.FMY - 1; y++) {
+        this.ban(x + y * this.FMX, this.ground);
+      }
     }
 
     this.propagate();
@@ -251,16 +258,13 @@ OverlappingModel.prototype.graphics = function (array) {
  * @protected
  */
 OverlappingModel.prototype.graphicsComplete = function (array) {
-  //console.time('graphicsComplete');
+  for (let y = 0; y < this.FMY; y++) {
+    const dy = y < this.FMY - this.N + 1 ? 0 : this.N - 1;
+    for (let x = 0; x < this.FMX; x++) {
+      const dx = x < this.FMX - this.N + 1 ? 0 : this.N - 1;
 
-  for (var y = 0; y < this.FMY; y++) {
-    var dy = y < this.FMY - this.N + 1 ? 0 : this.N - 1;
-    for (var x = 0; x < this.FMX; x++) {
-      var dx = x < this.FMX - this.N + 1 ? 0 : this.N - 1;
-
-      var pixelIndex = (y * this.FMX + x) * 4;
-
-      var color = this.colors[this.patterns[this.observed[x - dx + (y - dy) * this.FMX]][dx + dy * this.N]];
+      const pixelIndex = (y * this.FMX + x) * 4;
+      const color = this.colors[this.patterns[this.observed[x - dx + (y - dy) * this.FMX]][dx + dy * this.N]];
 
       array[pixelIndex] = color[0];
       array[pixelIndex + 1] = color[1];
@@ -268,8 +272,6 @@ OverlappingModel.prototype.graphicsComplete = function (array) {
       array[pixelIndex + 3] = color[3];
     }
   }
-
-  //console.timeEnd('graphicsComplete');
 };
 
 /**
@@ -280,31 +282,33 @@ OverlappingModel.prototype.graphicsComplete = function (array) {
  * @protected
  */
 OverlappingModel.prototype.graphicsIncomplete = function (array) {
-  for (var i = 0; i < this.wave.length; i++) {
-    var contributors = 0;
-    var r = 0;
-    var g = 0;
-    var b = 0;
-    var a = 0;
-    var x = i % this.FMX;
-    var y = i / this.FMX | 0;
+  for (let i = 0; i < this.wave.length; i++) {
+    const x = i % this.FMX;
+    const y = i / this.FMX | 0;
 
-    for (var dy = 0; dy < this.N; dy++) {
-      for (var dx = 0; dx < this.N; dx++) {
-        var sx = x - dx;
+    let contributors = 0;
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let a = 0;
+
+    for (let dy = 0; dy < this.N; dy++) {
+      for (let dx = 0; dx < this.N; dx++) {
+        let sx = x - dx;
         if (sx < 0) sx += this.FMX;
-        var sy = y - dy;
-        if (sy < 0) sy += this.FMY;
 
-        var s = sx + sy * this.FMX;
+        let sy = y - dy;
+        if (sy < 0) sy += this.FMY;
 
         if (this.onBoundary(sx, sy)) continue;
 
-        for (var t = 0; t < this.T; t++) {
+        const s = sx + sy * this.FMX;
+
+        for (let t = 0; t < this.T; t++) {
           if (this.wave[s][t]) {
             contributors++;
 
-            var color = this.colors[this.patterns[t][dx + dy * this.N]];
+            const color = this.colors[this.patterns[t][dx + dy * this.N]];
 
             r += color[0];
             g += color[1];
@@ -315,7 +319,7 @@ OverlappingModel.prototype.graphicsIncomplete = function (array) {
       }
     }
 
-    var pixelIndex = i * 4;
+    const pixelIndex = i * 4;
 
     array[pixelIndex] = r / contributors;
     array[pixelIndex + 1] = g / contributors;

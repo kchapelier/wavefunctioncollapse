@@ -1,11 +1,40 @@
 "use strict";
 
-var randomIndice = require('./random-indice');
+const randomIndice = require('./random-indice');
 
-var Model = function Model () {};
+const Model = function Model () {};
+
+Model.prototype.FMX = 0;
+Model.prototype.FMY = 0;
+Model.prototype.T = 0;
+Model.prototype.N = 0;
 
 Model.prototype.initiliazedField = false;
 Model.prototype.generationComplete = false;
+
+Model.prototype.wave = null;
+Model.prototype.compatible = null;
+Model.prototype.weightLogWeights = null;
+Model.prototype.sumOfWeights = 0;
+Model.prototype.sumOfWeightLogWeights = 0;
+
+Model.prototype.startingEntropy = 0;
+
+Model.prototype.sumsOfOnes = null;
+Model.prototype.sumsOfWeights = null;
+Model.prototype.sumsOfWeightLogWeights = null;
+Model.prototype.entropies = null;
+
+Model.prototype.propagator = null;
+Model.prototype.observed = null;
+Model.prototype.distribution = null;
+
+Model.prototype.stack = null;
+Model.prototype.stackSize = 0;
+
+Model.prototype.DX = [-1, 0, 1, 0];
+Model.prototype.DY = [0, 1, 0, -1];
+Model.prototype.opposite = [2, 3, 0, 1];
 
 /**
  * @protected
@@ -14,11 +43,11 @@ Model.prototype.initialize = function () {
   this.wave = new Array(this.FMX * this.FMY);
   this.compatible = new Array(this.wave.length);
 
-  for (var i = 0; i < this.wave.length; i++) {
+  for (let i = 0; i < this.wave.length; i++) {
     this.wave[i] = new Array(this.T);
     this.compatible[i] = new Array(this.T);
 
-    for (var t = 0; t < this.T; t++) {
+    for (let t = 0; t < this.T; t++) {
       this.compatible[i][t] = [0,0,0,0];
     }
   }
@@ -27,7 +56,7 @@ Model.prototype.initialize = function () {
   this.sumOfWeights = 0;
   this.sumOfWeightLogWeights = 0;
 
-  for (var t = 0; t < this.T; t++) {
+  for (let t = 0; t < this.T; t++) {
     this.weightLogWeights[t] = this.weights[t] * Math.log(this.weights[t]);
     this.sumOfWeights += this.weights[t];
     this.sumOfWeightLogWeights += this.weightLogWeights[t];
@@ -54,20 +83,20 @@ Model.prototype.initialize = function () {
  */
 Model.prototype.observe = function (rng) {
 
-  var min = 1000;
-  var argmin = -1;
+  let min = 1000;
+  let argmin = -1;
 
-  for (var i = 0; i < this.wave.length; i++) {
+  for (let i = 0; i < this.wave.length; i++) {
     if (this.onBoundary(i % this.FMX, i / this.FMX | 0)) continue;
 
-    var amount = this.sumsOfOnes[i];
+    const amount = this.sumsOfOnes[i];
 
     if (amount === 0) return false;
 
-    var entropy = this.entropies[i];
+    const entropy = this.entropies[i];
 
     if (amount > 1 && entropy <= min) {
-      var noise = 0.000001 * rng();
+      const noise = 0.000001 * rng();
 
       if (entropy + noise < min) {
         min = entropy + noise;
@@ -79,8 +108,8 @@ Model.prototype.observe = function (rng) {
   if (argmin === -1) {
     this.observed = new Array(this.FMX * this.FMY);
 
-    for (var i = 0; i < this.wave.length; i++) {
-      for (var t = 0; t < this.T; t++) {
+    for (let i = 0; i < this.wave.length; i++) {
+      for (let t = 0; t < this.T; t++) {
         if (this.wave[i][t]) {
           this.observed[i] = t;
           break;
@@ -92,13 +121,13 @@ Model.prototype.observe = function (rng) {
   }
 
   this.distribution = new Array(this.T);
-  for (var t = 0; t < this.T; t++) {
+  for (let t = 0; t < this.T; t++) {
     this.distribution[t] = this.wave[argmin][t] ? this.weights[t] : 0;
   }
-  var r = randomIndice(this.distribution, rng());
+  const r = randomIndice(this.distribution, rng());
 
-  var w = this.wave[argmin];
-  for (var t = 0; t < this.T; t++) {
+  const w = this.wave[argmin];
+  for (let t = 0; t < this.T; t++) {
     if (w[t] !== (t === r)) this.ban(argmin, t);
   }
 
@@ -110,19 +139,19 @@ Model.prototype.observe = function (rng) {
  */
 Model.prototype.propagate = function () {
   while (this.stackSize > 0) {
-    var e1 = this.stack[this.stackSize - 1];
+    const e1 = this.stack[this.stackSize - 1];
     this.stackSize--;
 
-    var i1 = e1[0];
-    var x1 = i1 % this.FMX;
-    var y1 = i1 / this.FMX | 0;
+    const i1 = e1[0];
+    const x1 = i1 % this.FMX;
+    const y1 = i1 / this.FMX | 0;
 
-    for (var d = 0; d < 4; d++) {
-      var dx = this.DX[d];
-      var dy = this.DY[d];
+    for (let d = 0; d < 4; d++) {
+      const dx = this.DX[d];
+      const dy = this.DY[d];
 
-      var x2 = x1 + dx;
-      var y2 = y1 + dy;
+      let x2 = x1 + dx;
+      let y2 = y1 + dy;
 
       if (this.onBoundary(x2, y2)) continue;
 
@@ -131,13 +160,13 @@ Model.prototype.propagate = function () {
       if (y2 < 0) y2 += this.FMY;
       else if (y2 >= this.FMY) y2 -= this.FMY;
 
-      var i2 = x2 + y2 * this.FMX;
-      var p = this.propagator[d][e1[1]];
-      var compat = this.compatible[i2];
+      const i2 = x2 + y2 * this.FMX;
+      const p = this.propagator[d][e1[1]];
+      const compat = this.compatible[i2];
 
-      for (var l = 0; l < p.length; l++) {
-        var t2 = p[l];
-        var comp = compat[t2];
+      for (let l = 0; l < p.length; l++) {
+        const t2 = p[l];
+        const comp = compat[t2];
         comp[d]--;
         if (comp[d] == 0) this.ban(i2, t2);
       }
@@ -155,7 +184,7 @@ Model.prototype.propagate = function () {
  * @protected
  */
 Model.prototype.singleIteration = function (rng) {
-  var result = this.observe(rng);
+  const result = this.observe(rng);
 
   if (result !== null) {
     this.generationComplete = result;
@@ -179,9 +208,6 @@ Model.prototype.singleIteration = function (rng) {
  * @public
  */
 Model.prototype.iterate = function (iterations, rng) {
-  var result;
-  var i;
-
   if (!this.wave) this.initialize();
 
   if (!this.initiliazedField) {
@@ -191,8 +217,8 @@ Model.prototype.iterate = function (iterations, rng) {
   iterations = iterations || 0;
   rng = rng || Math.random;
 
-  for (i = 0; i < iterations || iterations === 0; i++) {
-    result = this.singleIteration(rng);
+  for (let i = 0; i < iterations || iterations === 0; i++) {
+    const result = this.singleIteration(rng);
 
     if (result !== null) {
       return !!result;
@@ -212,8 +238,6 @@ Model.prototype.iterate = function (iterations, rng) {
  * @public
  */
 Model.prototype.generate = function (rng) {
-  var result;
-
   rng = rng || Math.random;
 
   if (!this.wave) this.initialize();
@@ -221,7 +245,7 @@ Model.prototype.generate = function (rng) {
   this.clear();
 
   while(true) {
-    result = this.singleIteration(rng);
+    const result = this.singleIteration(rng);
 
     if (result !== null) {
       return !!result;
@@ -248,9 +272,14 @@ Model.prototype.isGenerationComplete = function () {
  * @protected
  */
 Model.prototype.ban = function (i, t) {
+  const comp = this.compatible[i][t];
+
   this.wave[i][t] = false;
-  var comp = this.compatible[i][t];
-  for (var d = 0; d < 4; d++) comp[d] = 0;
+
+  for (let d = 0; d < 4; d++) {
+    comp[d] = 0;
+  }
+
   this.stack[this.stackSize] = [i, t];
   this.stackSize++;
 
@@ -258,7 +287,7 @@ Model.prototype.ban = function (i, t) {
   this.sumsOfWeights[i] -= this.weights[t];
   this.sumsOfWeightLogWeights[i] -= this.weightLogWeights[t];
 
-  var sum = this.sumsOfWeights[i];
+  const sum = this.sumsOfWeights[i];
   this.entropies[i] = Math.log(sum) - this.sumsOfWeightLogWeights[i] / sum;
 };
 
@@ -268,11 +297,11 @@ Model.prototype.ban = function (i, t) {
  * @public
  */
 Model.prototype.clear = function () {
-  for (var i = 0; i < this.wave.length; i++) {
-    for (var t = 0; t < this.T; t++) {
+  for (let i = 0; i < this.wave.length; i++) {
+    for (let t = 0; t < this.T; t++) {
       this.wave[i][t] = true;
 
-      for (var d = 0; d < 4; d++) {
+      for (let d = 0; d < 4; d++) {
         this.compatible[i][t][d] = this.propagator[this.opposite[d]][t].length;
       }
     }
@@ -286,9 +315,5 @@ Model.prototype.clear = function () {
   this.initiliazedField = true;
   this.generationComplete = false;
 };
-
-Model.prototype.DX = [-1, 0, 1, 0];
-Model.prototype.DY = [0, 1, 0, -1];
-Model.prototype.opposite = [2, 3, 0, 1];
 
 module.exports = Model;
