@@ -7,194 +7,288 @@ var Model = function Model () {};
 Model.prototype.initiliazedField = false;
 Model.prototype.generationComplete = false;
 
-Model.prototype.wave = null;
-Model.prototype.changes = null;
-Model.prototype.stationary = null;
-Model.prototype.distribution = null;
+/**
+ * @protected
+ */
+Model.prototype.initialize = function () {
+  this.wave = new Array(this.FMX * this.FMY);
+  this.compatible = new Array(this.wave.length);
 
-Model.prototype.FMX = 0;
-Model.prototype.FMY = 0;
-Model.prototype.T = 0;
+  for (var i = 0; i < this.wave.length; i++) {
+    this.wave[i] = new Array(this.T);
+    this.compatible[i] = new Array(this.T);
 
-Model.prototype.periodic = false;
+    for (var t = 0; t < this.T; t++) {
+      this.compatible[i][t] = [0,0,0,0];
+    }
+  }
+
+  this.weightLogWeights = new Array(this.T);
+  this.sumOfWeights = 0;
+  this.sumOfWeightLogWeights = 0;
+
+  for (var t = 0; t < this.T; t++) {
+    this.weightLogWeights[t] = this.weights[t] * Math.log(this.weights[t]);
+    this.sumOfWeights += this.weights[t];
+    this.sumOfWeightLogWeights += this.weightLogWeights[t];
+  }
+
+  this.startingEntropy = Math.log(this.sumOfWeights) - this.sumOfWeightLogWeights / this.sumOfWeights;
+
+  this.sumsOfOnes = new Array(this.FMX * this.FMY);
+  this.sumsOfWeights = new Array(this.FMX * this.FMY);
+  this.sumsOfWeightLogWeights = new Array(this.FMX * this.FMY);
+  this.entropies = new Array(this.FMX * this.FMY);
+
+  this.stack = new Array(this.FMX * this.FMY * this.T);
+  this.stackSize = 0;
+};
 
 /**
  *
  * @param {Function} rng Random number generator function
- * @protected
+ *
  * @returns {*}
+ *
+ * @protected
  */
 Model.prototype.observe = function (rng) {
-    var min = 1000,
-        argminx = -1,
-        argminy = -1,
-        distribution = this.distribution,
-        entropy,
-        noise,
-        sum,
-        r,
-        x,
-        y,
-        t;
 
-    for (x = 0; x < this.FMX; x++) {
-        for (y = 0; y < this.FMY; y++) {
-            if (this.onBoundary(x, y)) {
-                continue;
-            }
+  var min = 1000;
+  var argmin = -1;
 
-            sum = 0;
+  for (var i = 0; i < this.wave.length; i++) {
+    if (this.onBoundary(i % this.FMX, i / this.FMX | 0)) continue;
 
-            for (t = 0; t < this.T; t++) {
-                distribution[t] = this.wave[x * this.waveStrideX + y * this.waveStrideY + t] ? this.stationary[t] : 0;
-                sum+= distribution[t];
-            }
+    var amount = this.sumsOfOnes[i];
 
-            if (sum === 0) {
-                return false;
-            }
+    if (amount === 0) return false;
 
-            for (t = 0; t < this.T; t++) {
-                distribution[t] /= sum;
-            }
+    var entropy = this.entropies[i];
 
-            entropy = 0;
+    if (amount > 1 && entropy <= min) {
+      var noise = 0.000001 * rng();
 
-            for (var i = 0; i < distribution.length; i++) {
-                if (distribution[i] > 0) {
-                    entropy+= -distribution[i] * Math.log(distribution[i]);
-                }
-            }
+      if (entropy + noise < min) {
+        min = entropy + noise;
+        argmin = i;
+      }
+    }
+  }
 
-            noise = 0.000001 * rng();
+  if (argmin === -1) {
+    this.observed = new Array(this.FMX * this.FMY);
 
-            if (entropy > 0 && entropy + noise < min)
-            {
-                min = entropy + noise;
-                argminx = x;
-                argminy = y;
-            }
+    for (var i = 0; i < this.wave.length; i++) {
+      for (var t = 0; t < this.T; t++) {
+        if (this.wave[i][t]) {
+          this.observed[i] = t;
+          break;
         }
+      }
     }
 
-    if (argminx === -1 && argminy === -1) {
-        return true;
+    return true;
+  }
+
+  this.distribution = new Array(this.T);
+  for (var t = 0; t < this.T; t++) {
+    this.distribution[t] = this.wave[argmin][t] ? this.weights[t] : 0;
+  }
+  var r = randomIndice(this.distribution, rng());
+
+  var w = this.wave[argmin];
+  for (var t = 0; t < this.T; t++) {
+    if (w[t] !== (t === r)) this.ban(argmin, t);
+  }
+
+  return null;
+};
+
+/**
+ * @protected
+ */
+Model.prototype.propagate = function () {
+  while (this.stackSize > 0) {
+    var e1 = this.stack[this.stackSize - 1];
+    this.stackSize--;
+
+    var i1 = e1[0];
+    var x1 = i1 % this.FMX;
+    var y1 = i1 / this.FMX | 0;
+
+    for (var d = 0; d < 4; d++) {
+      var dx = this.DX[d];
+      var dy = this.DY[d];
+
+      var x2 = x1 + dx;
+      var y2 = y1 + dy;
+
+      if (this.onBoundary(x2, y2)) continue;
+
+      if (x2 < 0) x2 += this.FMX;
+      else if (x2 >= this.FMX) x2 -= this.FMX;
+      if (y2 < 0) y2 += this.FMY;
+      else if (y2 >= this.FMY) y2 -= this.FMY;
+
+      var i2 = x2 + y2 * this.FMX;
+      var p = this.propagator[d][e1[1]];
+      var compat = this.compatible[i2];
+
+      for (var l = 0; l < p.length; l++) {
+        var t2 = p[l];
+        var comp = compat[t2];
+        comp[d]--;
+        if (comp[d] == 0) this.ban(i2, t2);
+      }
     }
-
-    for (t = 0; t < this.T; t++) {
-        distribution[t] = this.wave[argminx * this.waveStrideX + argminy * this.waveStrideY + t] ? this.stationary[t] : 0;
-    }
-
-    r = randomIndice(distribution, rng());
-    for (t = 0; t < this.T; t++) {
-        this.wave[argminx * this.waveStrideX + argminy * this.waveStrideY + t] = (t === r);
-    }
-
-    this.changes[argminx * this.FMY + argminy] = 1;
-
-    return null;
+  }
 };
 
 /**
  * Execute a single iteration
+ *
  * @param {Function} rng Random number generator function
+ *
+ * @returns {boolean|null}
+ *
  * @protected
- * @returns {*}
  */
 Model.prototype.singleIteration = function (rng) {
-    var result = this.observe(rng);
+  var result = this.observe(rng);
 
-    if (result !== null) {
-        this.generationComplete = result;
+  if (result !== null) {
+    this.generationComplete = result;
 
-        return !!result;
-    }
+    return !!result;
+  }
 
-    while (this.propagate()) {}
+  this.propagate();
 
-    return null;
+  return null;
 };
 
 /**
  * Execute a fixed number of iterations. Stop when the generation is successful or reaches a contradiction.
+ *
  * @param {int} [iterations=0] Maximum number of iterations to execute (0 = infinite)
  * @param {Function|null} [rng=Math.random] Random number generator function
+ *
  * @returns {boolean} Success
+ *
+ * @public
  */
 Model.prototype.iterate = function (iterations, rng) {
-    var result,
-        i;
+  var result;
+  var i;
 
-    if (!this.initiliazedField) {
-        this.clear();
+  if (!this.wave) this.initialize();
+
+  if (!this.initiliazedField) {
+    this.clear();
+  }
+
+  iterations = iterations || 0;
+  rng = rng || Math.random;
+
+  for (i = 0; i < iterations || iterations === 0; i++) {
+    result = this.singleIteration(rng);
+
+    if (result !== null) {
+      return !!result;
     }
+  }
 
-    iterations = iterations || 0;
-    rng = rng || Math.random;
-
-    for (i = 0; i < iterations || iterations === 0; i++) {
-        result = this.singleIteration(rng);
-
-        if (result !== null) {
-            return !!result;
-        }
-    }
-
-    return true;
+  return true;
 };
 
 /**
  * Execute a complete new generation
+ *
  * @param {Function|null} [rng=Math.random] Random number generator function
+ *
  * @returns {boolean} Success
+ *
+ * @public
  */
 Model.prototype.generate = function (rng) {
-    var result;
+  var result;
 
-    rng = rng || Math.random;
+  rng = rng || Math.random;
 
-    this.clear();
+  if (!this.wave) this.initialize();
 
-    while (true) {
-        result = this.singleIteration(rng);
+  this.clear();
 
-        if (result !== null) {
-            return !!result;
-        }
+  while(true) {
+    result = this.singleIteration(rng);
+
+    if (result !== null) {
+      return !!result;
     }
+  }
 };
 
 /**
  * Check whether the previous generation completed successfully
+ *
  * @returns {boolean}
+ *
+ * @public
  */
 Model.prototype.isGenerationComplete = function () {
-    return this.generationComplete;
+  return this.generationComplete;
+};
+
+/**
+ *
+ * @param {int} i
+ * @param {int} t
+ *
+ * @protected
+ */
+Model.prototype.ban = function (i, t) {
+  this.wave[i][t] = false;
+  var comp = this.compatible[i][t];
+  for (var d = 0; d < 4; d++) comp[d] = 0;
+  this.stack[this.stackSize] = [i, t];
+  this.stackSize++;
+
+  this.sumsOfOnes[i] -= 1;
+  this.sumsOfWeights[i] -= this.weights[t];
+  this.sumsOfWeightLogWeights[i] -= this.weightLogWeights[t];
+
+  var sum = this.sumsOfWeights[i];
+  this.entropies[i] = Math.log(sum) - this.sumsOfWeightLogWeights[i] / sum;
 };
 
 /**
  * Clear the internal state to start a new generation
+ *
+ * @public
  */
 Model.prototype.clear = function () {
-    //console.time('Model.clear');
+  for (var i = 0; i < this.wave.length; i++) {
+    for (var t = 0; t < this.T; t++) {
+      this.wave[i][t] = true;
 
-    var x,
-        y,
-        t;
-
-    for (x = 0; x < this.FMX; x++) {
-        for (y = 0; y < this.FMY; y++) {
-            for (t = 0; t < this.T; t++) {
-                this.wave[x * this.waveStrideX + y * this.waveStrideY + t] = true;
-            }
-
-            this.changes[x * this.FMY + y] = 0;
-        }
+      for (var d = 0; d < 4; d++) {
+        this.compatible[i][t][d] = this.propagator[this.opposite[d]][t].length;
+      }
     }
 
-    this.initiliazedField = true;
-    this.generationComplete = false;
-    //console.timeEnd('Model.clear');
+    this.sumsOfOnes[i] = this.weights.length;
+    this.sumsOfWeights[i] = this.sumOfWeights;
+    this.sumsOfWeightLogWeights[i] = this.sumOfWeightLogWeights;
+    this.entropies[i] = this.startingEntropy;
+  }
+
+  this.initiliazedField = true;
+  this.generationComplete = false;
 };
+
+Model.prototype.DX = [-1, 0, 1, 0];
+Model.prototype.DY = [0, 1, 0, -1];
+Model.prototype.opposite = [2, 3, 0, 1];
 
 module.exports = Model;

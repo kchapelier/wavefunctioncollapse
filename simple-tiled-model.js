@@ -9,474 +9,370 @@ var Model = require('./model');
  * @param {int} width The width of the generation
  * @param {int} height The height of the generation
  * @param {bool} periodic Whether the source image is to be considered as periodic / as a repeatable texture
+ *
  * @constructor
  */
-var SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, height, periodic) {
-    var unique = !!data.unique,
-        subset = null,
-        tilesize = data.tilesize || 16,
-        action = [],
-        firstOccurrence = {},
-        currentTile,
-        cardinality = 4,
-        funcA,
-        funcB,
-        bitmap,
-        x,
-        y,
-        t,
-        t2,
-        i;
+function SimpleTiledModel (data, subsetName, width, height, periodic) {
+  var tilesize = data.tilesize || 16;
 
-    var neighbor,
-        left,
-        right,
-        L,
-        R,
-        D,
-        U;
+  this.FMX = width;
+  this.FMY = height;
 
-    this.FMX = width;
-    this.FMY = height;
-    this.periodic = !!periodic;
-    this.tilesize = tilesize;
+  this.periodic = periodic;
+  this.tilesize = tilesize;
 
-    this.tiles = [];
-    this.stationary = [];
+  var unique = !!data.unique;
+  var subset = null;
 
-    if (subsetName && data.subsets && !!data.subsets[subsetName]) {
-        subset = data.subsets[subsetName];
+  if (subsetName && data.subsets && !!data.subsets[subsetName]) {
+    subset = data.subsets[subsetName];
+  }
+
+  var tile = function tile (f) {
+    var result = new Array(tilesize * tilesize),
+      y,
+      x;
+
+    for (y = 0; y < tilesize; y++) {
+      for (x = 0; x < tilesize; x++) {
+        result[x + y * tilesize] = f(x, y);
+      }
     }
 
-    var tile = function tile (f) {
-        var result = new Array(tilesize * tilesize),
-            y,
-            x;
+    return result;
+  };
 
-        for (y = 0; y < tilesize; y++) {
-            for (x = 0; x < tilesize; x++) {
-                result[x + y * tilesize] = f(x, y);
-            }
-        }
+  var rotate = function rotate (array) {
+    return tile(function (x, y) {
+      return array[tilesize - 1 - y + x * tilesize];
+    });
+  };
 
-        return result;
-    };
+  this.tiles = [];
+  var tempStationary = [];
 
-    var rotate = function rotate (array) {
-        return tile(function (x, y) {
-            return array[tilesize - 1 - y + x * tilesize];
-        });
-    };
+  var action = new Array();
+  var firstOccurrence = {};
 
-    for (i = 0; i < data.tiles.length; i++) {
-        currentTile = data.tiles[i];
+  var funcA;
+  var funcB;
+  var cardinality;
 
-        if (subset !== null && subset.indexOf(currentTile.name) === -1) {
-            continue;
-        }
+  for (var i = 0; i < data.tiles.length; i++) {
+    var currentTile = data.tiles[i];
 
-        switch (currentTile.symmetry) {
-            case 'L':
-                cardinality = 4;
-                funcA = function (i) {
-                    return (i + 1) % 4;
-                };
-                funcB = function (i) {
-                    return i % 2 == 0 ? i + 1 : i - 1;
-                };
-                break;
-            case 'T':
-                cardinality = 4;
-                funcA = function (i) {
-                    return (i + 1) % 4;
-                };
-                funcB = function (i) {
-                    return i % 2 == 0 ? i : 4 - i;
-                };
-                break;
-            case 'I':
-                cardinality = 2;
-                funcA = function (i) {
-                    return 1 - i;
-                };
-                funcB = function (i) {
-                    return i;
-                };
-                break;
-            case '\\':
-                cardinality = 2;
-                funcA = function (i) {
-                    return 1 - i;
-                };
-                funcB = function (i) {
-                    return 1 - i;
-                };
-                break;
-            case 'X':
-            default:
-                cardinality = 1;
-                funcA = function (i) {
-                    return i;
-                };
-                funcB = function (i) {
-                    return i;
-                };
-                break;
-        }
+    if (subset !== null && subset.indexOf(currentTile.name) === -1) {
+      continue;
+    }
 
-        this.T = action.length;
-        firstOccurrence[currentTile.name] = this.T;
-
-        for (t = 0; t < cardinality; t++) {
-            action.push([
-                this.T + t,
-                this.T + funcA(t),
-                this.T + funcA(funcA(t)),
-                this.T + funcA(funcA(funcA(t))),
-                this.T + funcB(t),
-                this.T + funcB(funcA(t)),
-                this.T + funcB(funcA(funcA(t))),
-                this.T + funcB(funcA(funcA(funcA(t))))
-            ]);
-        }
-
-        if (unique) {
-            for (t = 0; t < cardinality; t++) {
-                bitmap = currentTile.bitmap[t];
-                this.tiles.push(tile(function (x, y) {
-                    return [
-                        bitmap[(tilesize * y + x) * 4],
-                        bitmap[(tilesize * y + x) * 4 + 1],
-                        bitmap[(tilesize * y + x) * 4 + 2],
-                        bitmap[(tilesize * y + x) * 4 + 3]
-                    ];
-                }));
-            }
-        } else {
-            bitmap = currentTile.bitmap;
-            this.tiles.push(tile(function (x, y) {
-                return [
-                    bitmap[(tilesize * y + x) * 4],
-                    bitmap[(tilesize * y + x) * 4 + 1],
-                    bitmap[(tilesize * y + x) * 4 + 2],
-                    bitmap[(tilesize * y + x) * 4 + 3]
-                ];
-            }));
-
-            for (t = 1; t < cardinality; t++) {
-                this.tiles.push(rotate(this.tiles[this.T + t - 1]));
-            }
-        }
-
-        for (t = 0; t < cardinality; t++) {
-            this.stationary.push(currentTile.weight || 1);
-        }
+    switch (currentTile.symmetry) {
+      case 'L':
+        cardinality = 4;
+        funcA = function (i) {
+          return (i + 1) % 4;
+        };
+        funcB = function (i) {
+          return i % 2 === 0 ? i + 1 : i - 1;
+        };
+        break;
+      case 'T':
+        cardinality = 4;
+        funcA = function (i) {
+          return (i + 1) % 4;
+        };
+        funcB = function (i) {
+          return i % 2 === 0 ? i : 4 - i;
+        };
+        break;
+      case 'I':
+        cardinality = 2;
+        funcA = function (i) {
+          return 1 - i;
+        };
+        funcB = function (i) {
+          return i;
+        };
+        break;
+      case '\\':
+        cardinality = 2;
+        funcA = function (i) {
+          return 1 - i;
+        };
+        funcB = function (i) {
+          return 1 - i;
+        };
+        break;
+      default:
+        cardinality = 1;
+        funcA = function (i) {
+          return i;
+        };
+        funcB = function (i) {
+          return i;
+        };
+        break;
     }
 
     this.T = action.length;
+    firstOccurrence[currentTile.name] = this.T;
 
-    this.distribution = new Array(this.T);
-    this.propagator = new Array(4);
-
-    for (i = 0; i < 4; i++) {
-        this.propagator[i] = new Array(this.T);
-        for (t = 0; t < this.T; t++) {
-            this.propagator[i][t] = new Array(this.T);
-            for (t2 = 0; t2 < this.T; t2++) {
-                this.propagator[i][t][t2] = false;
-            }
-        }
+    for (var t = 0; t < cardinality; t++) {
+      action.push([
+        this.T + t,
+        this.T + funcA(t),
+        this.T + funcA(funcA(t)),
+        this.T + funcA(funcA(funcA(t))),
+        this.T + funcB(t),
+        this.T + funcB(funcA(t)),
+        this.T + funcB(funcA(funcA(t))),
+        this.T + funcB(funcA(funcA(funcA(t))))
+      ]);
     }
 
-    this.waveStrideX = this.FMY * this.T;
-    this.waveStrideY = this.T;
 
-    this.wave = new Uint8Array(this.FMX * this.FMY * this.T);
-    this.changes = new Uint8Array(this.FMX * this.FMY);
+    if (unique) {
+      for (var t = 0; t < cardinality; t++) {
+        var bitmap = currentTile.bitmap[t];
+        this.tiles.push(tile(function (x, y) {
+          return [
+            bitmap[(tilesize * y + x) * 4],
+            bitmap[(tilesize * y + x) * 4 + 1],
+            bitmap[(tilesize * y + x) * 4 + 2],
+            bitmap[(tilesize * y + x) * 4 + 3]
+          ];
+        }));
+      }
+    } else {
+      bitmap = currentTile.bitmap;
+      this.tiles.push(tile(function (x, y) {
+        return [
+          bitmap[(tilesize * y + x) * 4],
+          bitmap[(tilesize * y + x) * 4 + 1],
+          bitmap[(tilesize * y + x) * 4 + 2],
+          bitmap[(tilesize * y + x) * 4 + 3]
+        ];
+      }));
 
-    for (i = 0; i < data.neighbors.length; i++) {
-        neighbor = data.neighbors[i];
-
-        left = neighbor.left.split(' ').filter(function (v) {
-            return v.length;
-        });
-        right = neighbor.right.split(' ').filter(function (v) {
-            return v.length;
-        });
-
-        if (subset !== null && (subset.indexOf(left[0]) === -1 || subset.indexOf(right[0]) === -1)) {
-            continue;
-        }
-
-        L = action[firstOccurrence[left[0]]][left.length == 1 ? 0 : parseInt(left[1], 10)];
-        D = action[L][1];
-        R = action[firstOccurrence[right[0]]][right.length == 1 ? 0 : parseInt(right[1], 10)];
-        U = action[R][1];
-
-        this.propagator[0][R][L] = true;
-        this.propagator[0][action[R][6]][action[L][6]] = true;
-        this.propagator[0][action[L][4]][action[R][4]] = true;
-        this.propagator[0][action[L][2]][action[R][2]] = true;
-
-        this.propagator[1][U][D] = true;
-        this.propagator[1][action[D][6]][action[U][6]] = true;
-        this.propagator[1][action[U][4]][action[D][4]] = true;
-        this.propagator[1][action[D][2]][action[U][2]] = true;
+      for (t = 1; t < cardinality; t++) {
+        this.tiles.push(rotate(this.tiles[this.T + t - 1]));
+      }
     }
 
-    for (t = 0; t < this.T; t++) {
-        for (t2 = 0; t2 < this.T; t2++) {
-            this.propagator[2][t][t2] = this.propagator[0][t2][t];
-            this.propagator[3][t][t2] = this.propagator[1][t2][t];
-        }
+    for (t = 0; t < cardinality; t++) {
+      tempStationary.push(currentTile.weight || 1);
     }
-};
+
+  }
+
+  this.T = action.length;
+  this.weights = tempStationary;
+
+  this.propagator = new Array(4);
+  var tempPropagator = new Array(4);
+
+  for (var i = 0; i < 4; i++) {
+    this.propagator[i] = new Array(this.T);
+    tempPropagator[i] = new Array(this.T);
+    for (var t = 0; t < this.T; t++) {
+      tempPropagator[i][t] = new Array(this.T);
+      for (var t2 = 0; t2 < this.T; t2++) {
+        tempPropagator[i][t][t2] = false;
+      }
+    }
+  }
+
+  for (i = 0; i < data.neighbors.length; i++) {
+    var neighbor = data.neighbors[i];
+
+    var left = neighbor.left.split(' ').filter(function (v) {
+      return v.length;
+    });
+    var right = neighbor.right.split(' ').filter(function (v) {
+      return v.length;
+    });
+
+    if (subset !== null && (subset.indexOf(left[0]) === -1 || subset.indexOf(right[0]) === -1)) {
+      continue;
+    }
+
+    var L = action[firstOccurrence[left[0]]][left.length == 1 ? 0 : parseInt(left[1], 10)];
+    var D = action[L][1];
+    var R = action[firstOccurrence[right[0]]][right.length == 1 ? 0 : parseInt(right[1], 10)];
+    var U = action[R][1];
+
+    tempPropagator[0][R][L] = true;
+    tempPropagator[0][action[R][6]][action[L][6]] = true;
+    tempPropagator[0][action[L][4]][action[R][4]] = true;
+    tempPropagator[0][action[L][2]][action[R][2]] = true;
+
+    tempPropagator[1][U][D] = true;
+    tempPropagator[1][action[D][6]][action[U][6]] = true;
+    tempPropagator[1][action[U][4]][action[D][4]] = true;
+    tempPropagator[1][action[D][2]][action[U][2]] = true;
+  }
+
+  for (t = 0; t < this.T; t++) {
+    for (t2 = 0; t2 < this.T; t2++) {
+      tempPropagator[2][t][t2] = tempPropagator[0][t2][t];
+      tempPropagator[3][t][t2] = tempPropagator[1][t2][t];
+    }
+  }
+
+  var sparsePropagator = new Array(4);
+
+  for (var d = 0; d < 4; d++) {
+    sparsePropagator[d] = new Array(this.T);
+    for (var t = 0; t < this.T; t++) sparsePropagator[d][t] = new Array();
+  }
+
+  for (var d = 0; d < 4; d++) {
+    for (var t1 = 0; t1 < this.T; t1++) {
+      var sp = sparsePropagator[d][t1];
+      var tp = tempPropagator[d][t1];
+
+      for (var t2 = 0; t2 < this.T; t2++) {
+        if (tp[t2]) sp.push(t2);
+      }
+
+      var ST = sp.length;
+
+      //TODO could probably just set sp in propagator instead of copying it
+      this.propagator[d][t1] = new Array(ST);
+
+      for (var st = 0; st < ST; st++) {
+        this.propagator[d][t1][st] = sp[st];
+      }
+    }
+  }
+}
 
 SimpleTiledModel.prototype = Object.create(Model.prototype);
 SimpleTiledModel.prototype.constructor = SimpleTiledModel;
 
-SimpleTiledModel.prototype.propagator = null;
-
-SimpleTiledModel.prototype.tiles = null;
-SimpleTiledModel.prototype.tilesize = 0;
-
 /**
- * @protected
- * @returns {boolean}
- */
-SimpleTiledModel.prototype.propagate = function () {
-    var change = false,
-        wave1,
-        wave2,
-        prop,
-        b,
-        x1,
-        y1,
-        x2,
-        y2,
-        d,
-        t2,
-        t1;
-
-    for (x2 = 0; x2 < this.FMX; x2++) {
-        for (y2 = 0; y2 < this.FMY; y2++) {
-            for (d = 0; d < 4; d++) {
-                x1 = x2;
-                y1 = y2;
-
-                if (d === 0) {
-                    if (x2 === 0) {
-                        if (!this.periodic) {
-                            continue;
-                        } else {
-                            x1 = this.FMX - 1;
-                        }
-                    } else {
-                        x1 = x2 - 1;
-                    }
-                } else if (d === 1) {
-                    if (y2 === this.FMY - 1) {
-                        if (!this.periodic) {
-                            continue;
-                        } else {
-                            y1 = 0;
-                        }
-                    } else {
-                        y1 = y2 + 1;
-                    }
-                } else if (d === 2) {
-                    if (x2 === this.FMX - 1) {
-                        if (!this.periodic) {
-                            continue;
-                        } else {
-                            x1 = 0;
-                        }
-                    } else {
-                        x1 = x2 + 1;
-                    }
-                } else {
-                    if (y2 === 0) {
-                        if (!this.periodic) {
-                            continue;
-                        } else {
-                            y1 = this.FMY - 1;
-                        }
-                    } else {
-                        y1 = y2 - 1;
-                    }
-                }
-
-                if (this.changes[x1 * this.FMY + y1] === 0) {
-                    continue;
-                }
-
-                wave1 = x1 * this.waveStrideX + y1 * this.waveStrideY;
-                wave2 = x2 * this.waveStrideX + y2 * this.waveStrideY;
-
-                for (t2 = 0; t2 < this.T; t2++) {
-                    if (this.wave[wave2 + t2] === 1) {
-                        prop = this.propagator[d][t2];
-                        b = false;
-
-                        for (t1 = 0; t1 < this.T && !b; t1++) {
-                            if (this.wave[wave1 + t1] === 1) {
-                                b = prop[t1];
-                            }
-                        }
-
-                        if (!b) {
-                            this.wave[wave2 + t2] = 0;
-                            this.changes[x2 * this.FMY + y2] = 1;
-                            change = true;
-                        }
-                    }
-                }
-
-            }
-        }
-    }
-
-    return change;
-};
-
-/**
+ *
  * @param {int} x
  * @param {int} y
- * @protected
+ *
  * @returns {boolean}
+ *
+ * @protected
  */
 SimpleTiledModel.prototype.onBoundary = function (x, y) {
-    return false;
-};
-
-/**
- * Set the RGBA data for a complete generation in a given array
- * @param {array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
- * @protected
- */
-SimpleTiledModel.prototype.graphicsComplete = function (array) {
-    var wave,
-        pixelIndex,
-        color,
-        x,
-        y,
-        xt,
-        yt,
-        t;
-
-    for (x = 0; x < this.FMX; x++) {
-        for (y = 0; y < this.FMY; y++) {
-            wave = x * this.waveStrideX + y * this.waveStrideY;
-
-            for (yt = 0; yt < this.tilesize; yt++) {
-                for (xt = 0; xt < this.tilesize; xt++) {
-                    pixelIndex = (x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4;
-
-                    for (t = 0; t < this.T; t++) {
-                        if (this.wave[wave + t]) {
-                            color = this.tiles[t][yt * this.tilesize + xt];
-                            array[pixelIndex] = color[0];
-                            array[pixelIndex + 1] = color[1];
-                            array[pixelIndex + 2] = color[2];
-                            array[pixelIndex + 3] = color[3];
-                            break;
-                        }
-                    }
-                }
-            }
-
-        }
-    }
-};
-
-/**
- * Set the RGBA data for an incomplete generation in a given array
- * @param {array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
- * @param {array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
- * @protected
- */
-SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
-    var wave,
-        amount,
-        sum,
-        pixelIndex,
-        color,
-        r,
-        g,
-        b,
-        a,
-        x,
-        y,
-        t,
-        yt,
-        xt;
-
-    for (x = 0; x < this.FMX; x++) {
-        for (y = 0; y < this.FMY; y++) {
-            wave = x * this.waveStrideX + y * this.waveStrideY;
-            amount = 0;
-            sum = 0;
-
-            for (t = 0; t < this.T; t++) {
-                if (this.wave[wave + t] === 1) {
-                    amount += 1;
-                    sum += this.stationary[t];
-                }
-            }
-
-            for (yt = 0; yt < this.tilesize; yt++) {
-                for (xt = 0; xt < this.tilesize; xt++) {
-                    pixelIndex = (x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4;
-
-                    if (defaultColor && amount === this.T && defaultColor.length === 4) {
-                        array[pixelIndex] = defaultColor[0];
-                        array[pixelIndex + 1] = defaultColor[1];
-                        array[pixelIndex + 2] = defaultColor[2];
-                        array[pixelIndex + 3] = defaultColor[3];
-                    } else {
-                        r = 0;
-                        g = 0;
-                        b = 0;
-                        a = 0;
-
-                        for (t = 0; t < this.T; t++) {
-                            if (this.wave[x * this.waveStrideX + y * this.waveStrideY + t]) {
-                                color = this.tiles[t][yt * this.tilesize + xt];
-                                r += color[0] * this.stationary[t];
-                                g += color[1] * this.stationary[t];
-                                b += color[2] * this.stationary[t];
-                                a += color[3] * this.stationary[t];
-                            }
-                        }
-
-                        array[pixelIndex] = r / sum;
-                        array[pixelIndex + 1] = g / sum;
-                        array[pixelIndex + 2] = b / sum;
-                        array[pixelIndex + 3] = a / sum;
-                    }
-                }
-            }
-
-        }
-    }
+  return !this.periodic && (x < 0 || y < 0 || x >= this.FMX || y >= this.FMY);
 };
 
 /**
  * Retrieve the RGBA data
+ *
  * @param {Array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into (must already be set to the correct size), if not set a new Uint8Array will be created and returned
  * @param {array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
+ *
  * @returns {Array|Uint8Array|Uint8ClampedArray} RGBA data
+ *
+ * @public
  */
 SimpleTiledModel.prototype.graphics = function (array, defaultColor) {
-    array = array || new Uint8Array(this.FMX * this.tilesize * this.FMY * this.tilesize * 4);
+  array = array || new Uint8Array(this.FMX * this.tilesize * this.FMY * this.tilesize * 4);
 
-    if (this.isGenerationComplete()) {
-        this.graphicsComplete(array);
-    } else {
-        this.graphicsIncomplete(array, defaultColor);
+  if (this.isGenerationComplete()) {
+    this.graphicsComplete(array);
+  } else {
+    this.graphicsIncomplete(array, defaultColor);
+  }
+
+  return array;
+};
+
+/**
+ * Set the RGBA data for a complete generation in a given array
+ *
+ * @param {array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
+ *
+ * @protected
+ */
+SimpleTiledModel.prototype.graphicsComplete = function (array) {
+  for (var x = 0; x < this.FMX; x++) {
+    for (var y = 0; y < this.FMY; y++) {
+      var tile = this.tiles[this.observed[x + y * this.FMX]];
+
+      for (var yt = 0; yt < this.tilesize; yt++) {
+        for (var xt = 0; xt < this.tilesize; xt++) {
+          var pixelIndex = (x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4;
+          var color = tile[xt + yt * this.tilesize];
+
+          array[pixelIndex] = color[0];
+          array[pixelIndex + 1] = color[1];
+          array[pixelIndex + 2] = color[2];
+          array[pixelIndex + 3] = color[3];
+        }
+      }
     }
+  }
+};
 
-    return array;
+/**
+ * Set the RGBA data for an incomplete generation in a given array
+ *
+ * @param {array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
+ * @param {array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
+ *
+ * @protected
+ */
+SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
+  if (!defaultColor || defaultColor.length !== 4) {
+    defaultColor = false;
+  }
+
+  for (var x = 0; x < this.FMX; x++) {
+    for (var y = 0; y < this.FMY; y++) {
+      var w = this.wave[x + y * this.FMX];
+      var amount = 0;
+      var sumWeights = 0;
+
+      for (var t = 0; t < this.T; t++) {
+        if (w[t]) {
+          amount++;
+          sumWeights += this.weights[t];
+        }
+      }
+
+      var lambda = 1 / sumWeights;
+
+      for (var yt = 0; yt < this.tilesize; yt++) {
+        for (var xt = 0; xt < this.tilesize; xt++) {
+          var pixelIndex = (x * this.tilesize + xt + (y * this.tilesize + yt) * this.FMX * this.tilesize) * 4;
+
+          if (defaultColor && amount === this.T) {
+            array[pixelIndex] = defaultColor[0];
+            array[pixelIndex + 1] = defaultColor[1];
+            array[pixelIndex + 2] = defaultColor[2];
+            array[pixelIndex + 3] = defaultColor[3];
+          } else {
+            var r = 0;
+            var g = 0;
+            var b = 0;
+            var a = 0;
+
+            for (var t = 0; t < this.T; t++) {
+              if (w[t]) {
+                var c = this.tiles[t][xt + yt * this.tilesize];
+                r+= c[0] * this.weights[t] * lambda;
+                g+= c[1] * this.weights[t] * lambda;
+                b+= c[2] * this.weights[t] * lambda;
+                a+= c[3] * this.weights[t] * lambda;
+              }
+            }
+
+            array[pixelIndex] = r;
+            array[pixelIndex + 1] = g;
+            array[pixelIndex + 2] = b;
+            array[pixelIndex + 3] = a;
+          }
+        }
+      }
+    }
+  }
 };
 
 module.exports = SimpleTiledModel;
