@@ -222,7 +222,9 @@ function SimpleTiledModel (data, subsetName, width, height, periodic) {
 
   for (var d = 0; d < 4; d++) {
     sparsePropagator[d] = new Array(this.T);
-    for (var t = 0; t < this.T; t++) sparsePropagator[d][t] = new Array();
+    for (var t = 0; t < this.T; t++) {
+      sparsePropagator[d][t] = new Array();
+    }
   }
 
   for (var d = 0; d < 4; d++) {
@@ -231,17 +233,12 @@ function SimpleTiledModel (data, subsetName, width, height, periodic) {
       var tp = tempPropagator[d][t1];
 
       for (var t2 = 0; t2 < this.T; t2++) {
-        if (tp[t2]) sp.push(t2);
+        if (tp[t2]) {
+          sp.push(t2);
+        }
       }
 
-      var ST = sp.length;
-
-      //TODO could probably just set sp in propagator instead of copying it
-      this.propagator[d][t1] = new Array(ST);
-
-      for (var st = 0; st < ST; st++) {
-        this.propagator[d][t1][st] = sp[st];
-      }
+      this.propagator[d][t1] = sp;
     }
   }
 }

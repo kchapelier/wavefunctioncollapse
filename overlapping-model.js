@@ -179,15 +179,12 @@ function OverlappingModel (data, dataWidth, dataHeight, N, width, height, period
       var list = new Array();
 
       for (var t2 = 0; t2 < this.T; t2++) {
-        if (agrees(this.patterns[t], this.patterns[t2], this.DX[d], this.DY[d])) list.push(t2);
+        if (agrees(this.patterns[t], this.patterns[t2], this.DX[d], this.DY[d])) {
+          list.push(t2);
+        }
       }
 
-      //TODO could just directly set list as the element, right ?
-      this.propagator[d][t] = new Array(list.length);
-
-      for (var c = 0; c < list.length; c++) {
-        this.propagator[d][t][c] = list[c];
-      }
+      this.propagator[d][t] = list;
     }
   }
 }
