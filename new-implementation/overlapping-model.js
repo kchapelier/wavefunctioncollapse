@@ -198,11 +198,10 @@ OverlappingModel.prototype.clear = function () {
 OverlappingModel.prototype.graphics = function (array) {
   array = array || new Uint8Array(this.FMX * this.FMY * 4);
 
-  if (this.observed !== null) {
+  if (this.isGenerationComplete()) {
     this.graphicsComplete(array);
   } else {
-    throw new Error('graphicsIncomplete not implemented yet');
-    //this.graphicsIncomplete(array);
+    this.graphicsIncomplete(array);
   }
 
   return array;
@@ -228,6 +227,51 @@ OverlappingModel.prototype.graphicsComplete = function (array) {
   }
 
   //console.timeEnd('graphicsComplete');
+};
+
+OverlappingModel.prototype.graphicsIncomplete = function (array) {
+  for (var i = 0; i < this.wave.length; i++) {
+    var contributors = 0;
+    var r = 0;
+    var g = 0;
+    var b = 0;
+    var a = 0;
+    var x = i % this.FMX;
+    var y = i / this.FMX | 0;
+
+    for (var dy = 0; dy < this.N; dy++) {
+      for (var dx = 0; dx < this.N; dx++) {
+        var sx = x - dx;
+        if (sx < 0) sx += this.FMX;
+        var sy = y - dy;
+        if (sy < 0) sy += this.FMY;
+
+        var s = sx + sy * this.FMX;
+
+        if (this.onBoundary(sx, sy)) continue;
+
+        for (var t = 0; t < this.T; t++) {
+          if (this.wave[s][t]) {
+            contributors++;
+
+            var color = this.colors[this.patterns[t][dx + dy * this.N]];
+
+            r += color[0];
+            g += color[1];
+            b += color[2];
+            a += color[3];
+          }
+        }
+      }
+    }
+
+    var pixelIndex = i * 4;
+
+    array[pixelIndex] = r / contributors;
+    array[pixelIndex + 1] = g / contributors;
+    array[pixelIndex + 2] = b / contributors;
+    array[pixelIndex + 3] = a / contributors;
+  }
 };
 
 module.exports = OverlappingModel;
