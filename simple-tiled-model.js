@@ -17,6 +17,7 @@ const SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, hei
 
   this.FMX = width;
   this.FMY = height;
+  this.FMXxFMY = width * height;
 
   this.periodic = periodic;
   this.tilesize = tilesize;
@@ -49,7 +50,7 @@ const SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, hei
   this.tiles = [];
   const tempStationary = [];
 
-  const action = new Array();
+  const action = [];
   const firstOccurrence = {};
 
   let funcA;
@@ -128,9 +129,11 @@ const SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, hei
     }
 
 
+    let bitmap;
+
     if (unique) {
       for (let t = 0; t < cardinality; t++) {
-        const bitmap = currentTile.bitmap[t];
+        bitmap = currentTile.bitmap[t];
         this.tiles.push(tile(function (x, y) {
           return [
             bitmap[(tilesize * y + x) * 4],
@@ -141,7 +144,7 @@ const SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, hei
         }));
       }
     } else {
-      const bitmap = currentTile.bitmap;
+      bitmap = currentTile.bitmap;
       this.tiles.push(tile(function (x, y) {
         return [
           bitmap[(tilesize * y + x) * 4],
@@ -216,19 +219,9 @@ const SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, hei
     }
   }
 
-  const sparsePropagator = new Array(4);
-
-  //TODO does instantiating all that even make sens ?
-  for (let d = 0; d < 4; d++) {
-    sparsePropagator[d] = new Array(this.T);
-    for (let t = 0; t < this.T; t++) {
-      sparsePropagator[d][t] = new Array();
-    }
-  }
-
   for (let d = 0; d < 4; d++) {
     for (let t1 = 0; t1 < this.T; t1++) {
-      const sp = sparsePropagator[d][t1];
+      const sp = [];
       const tp = tempPropagator[d][t1];
 
       for (let t2 = 0; t2 < this.T; t2++) {
@@ -262,14 +255,14 @@ SimpleTiledModel.prototype.onBoundary = function (x, y) {
  * Retrieve the RGBA data
  *
  * @param {Array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into (must already be set to the correct size), if not set a new Uint8Array will be created and returned
- * @param {array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
+ * @param {Array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
  *
  * @returns {Array|Uint8Array|Uint8ClampedArray} RGBA data
  *
  * @public
  */
 SimpleTiledModel.prototype.graphics = function (array, defaultColor) {
-  array = array || new Uint8Array(this.FMX * this.tilesize * this.FMY * this.tilesize * 4);
+  array = array || new Uint8Array(this.FMXxFMY * this.tilesize * this.tilesize * 4);
 
   if (this.isGenerationComplete()) {
     this.graphicsComplete(array);
@@ -283,7 +276,7 @@ SimpleTiledModel.prototype.graphics = function (array, defaultColor) {
 /**
  * Set the RGBA data for a complete generation in a given array
  *
- * @param {array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
+ * @param {Array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
  *
  * @protected
  */
@@ -310,8 +303,8 @@ SimpleTiledModel.prototype.graphicsComplete = function (array) {
 /**
  * Set the RGBA data for an incomplete generation in a given array
  *
- * @param {array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
- * @param {array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
+ * @param {Array|Uint8Array|Uint8ClampedArray} [array] Array to write the RGBA data into, if not set a new Uint8Array will be created and returned
+ * @param {Array|Uint8Array|Uint8ClampedArray} [defaultColor] RGBA data of the default color to use on untouched tiles
  *
  * @protected
  */
@@ -353,10 +346,11 @@ SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
             for (let t = 0; t < this.T; t++) {
               if (w[t]) {
                 const c = this.tiles[t][xt + yt * this.tilesize];
-                r+= c[0] * this.weights[t] * lambda;
-                g+= c[1] * this.weights[t] * lambda;
-                b+= c[2] * this.weights[t] * lambda;
-                a+= c[3] * this.weights[t] * lambda;
+                const weight = this.weights[t] * lambda;
+                r+= c[0] * weight;
+                g+= c[1] * weight;
+                b+= c[2] * weight;
+                a+= c[3] * weight;
               }
             }
 

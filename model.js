@@ -6,6 +6,7 @@ const Model = function Model () {};
 
 Model.prototype.FMX = 0;
 Model.prototype.FMY = 0;
+Model.prototype.FMXxFMY = 0;
 Model.prototype.T = 0;
 Model.prototype.N = 0;
 
@@ -40,10 +41,12 @@ Model.prototype.opposite = [2, 3, 0, 1];
  * @protected
  */
 Model.prototype.initialize = function () {
-  this.wave = new Array(this.FMX * this.FMY);
-  this.compatible = new Array(this.wave.length);
+  this.distribution = new Array(this.T);
 
-  for (let i = 0; i < this.wave.length; i++) {
+  this.wave = new Array(this.FMXxFMY);
+  this.compatible = new Array(this.FMXxFMY);
+
+  for (let i = 0; i < this.FMXxFMY; i++) {
     this.wave[i] = new Array(this.T);
     this.compatible[i] = new Array(this.T);
 
@@ -64,12 +67,12 @@ Model.prototype.initialize = function () {
 
   this.startingEntropy = Math.log(this.sumOfWeights) - this.sumOfWeightLogWeights / this.sumOfWeights;
 
-  this.sumsOfOnes = new Array(this.FMX * this.FMY);
-  this.sumsOfWeights = new Array(this.FMX * this.FMY);
-  this.sumsOfWeightLogWeights = new Array(this.FMX * this.FMY);
-  this.entropies = new Array(this.FMX * this.FMY);
+  this.sumsOfOnes = new Array(this.FMXxFMY);
+  this.sumsOfWeights = new Array(this.FMXxFMY);
+  this.sumsOfWeightLogWeights = new Array(this.FMXxFMY);
+  this.entropies = new Array(this.FMXxFMY);
 
-  this.stack = new Array(this.FMX * this.FMY * this.T);
+  this.stack = new Array(this.FMXxFMY * this.T);
   this.stackSize = 0;
 };
 
@@ -86,7 +89,7 @@ Model.prototype.observe = function (rng) {
   let min = 1000;
   let argmin = -1;
 
-  for (let i = 0; i < this.wave.length; i++) {
+  for (let i = 0; i < this.FMXxFMY; i++) {
     if (this.onBoundary(i % this.FMX, i / this.FMX | 0)) continue;
 
     const amount = this.sumsOfOnes[i];
@@ -106,9 +109,9 @@ Model.prototype.observe = function (rng) {
   }
 
   if (argmin === -1) {
-    this.observed = new Array(this.FMX * this.FMY);
+    this.observed = new Array(this.FMXxFMY);
 
-    for (let i = 0; i < this.wave.length; i++) {
+    for (let i = 0; i < this.FMXxFMY; i++) {
       for (let t = 0; t < this.T; t++) {
         if (this.wave[i][t]) {
           this.observed[i] = t;
@@ -120,7 +123,6 @@ Model.prototype.observe = function (rng) {
     return true;
   }
 
-  this.distribution = new Array(this.T);
   for (let t = 0; t < this.T; t++) {
     this.distribution[t] = this.wave[argmin][t] ? this.weights[t] : 0;
   }
@@ -274,11 +276,11 @@ Model.prototype.isGenerationComplete = function () {
 Model.prototype.ban = function (i, t) {
   const comp = this.compatible[i][t];
 
-  this.wave[i][t] = false;
-
   for (let d = 0; d < 4; d++) {
     comp[d] = 0;
   }
+
+  this.wave[i][t] = false;
 
   this.stack[this.stackSize] = [i, t];
   this.stackSize++;
@@ -297,7 +299,7 @@ Model.prototype.ban = function (i, t) {
  * @public
  */
 Model.prototype.clear = function () {
-  for (let i = 0; i < this.wave.length; i++) {
+  for (let i = 0; i < this.FMXxFMY; i++) {
     for (let t = 0; t < this.T; t++) {
       this.wave[i][t] = true;
 

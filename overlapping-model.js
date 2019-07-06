@@ -4,7 +4,7 @@ const Model = require('./model');
 
 /**
  *
- * @param {Uint8Array} data The RGBA data of the source image
+ * @param {Uint8Array|Uint8ClampedArray} data The RGBA data of the source image
  * @param {int} dataWidth The width of the source image
  * @param {int} dataHeight The height of the source image
  * @param {int} N Size of the patterns
@@ -23,6 +23,7 @@ const OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight,
   this.N = N;
   this.FMX = width;
   this.FMY = height;
+  this.FMXxFMY = width * height;
   this.periodic = periodicOutput;
 
   const SMX = dataWidth;
@@ -32,7 +33,7 @@ const OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight,
     sample[i] = new Array(dataHeight);
   }
 
-  this.colors = new Array();
+  this.colors = [];
   const colorMap = {};
 
   for (let y = 0; y < dataHeight; y++) {
@@ -176,7 +177,7 @@ const OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight,
   for (let d = 0; d < 4; d++) {
     this.propagator[d] = new Array(this.T);
     for (let t = 0; t < this.T; t++) {
-      const list = new Array();
+      const list = [];
 
       for (let t2 = 0; t2 < this.T; t2++) {
         if (agrees(this.patterns[t], this.patterns[t2], this.DX[d], this.DY[d])) {
@@ -239,7 +240,7 @@ OverlappingModel.prototype.clear = function () {
  * @public
  */
 OverlappingModel.prototype.graphics = function (array) {
-  array = array || new Uint8Array(this.FMX * this.FMY * 4);
+  array = array || new Uint8Array(this.FMXxFMY * 4);
 
   if (this.isGenerationComplete()) {
     this.graphicsComplete(array);
@@ -282,7 +283,7 @@ OverlappingModel.prototype.graphicsComplete = function (array) {
  * @protected
  */
 OverlappingModel.prototype.graphicsIncomplete = function (array) {
-  for (let i = 0; i < this.wave.length; i++) {
+  for (let i = 0; i < this.FMXxFMY; i++) {
     const x = i % this.FMX;
     const y = i / this.FMX | 0;
 
