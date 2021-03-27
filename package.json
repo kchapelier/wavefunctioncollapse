@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
-    "jimp": "0.6.4"
+    "jimp": "0.16.1"
   },
   "scripts": {},
   "repository": {
