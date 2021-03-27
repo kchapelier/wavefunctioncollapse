@@ -129,6 +129,11 @@ Clear the internal state to start a new generation.
 
 ## Changelog
 
+### [2.1.0](https://github.com/kchapelier/wavefunctioncollapse/tree/2.1.0) (2021-03-27)
+
+ * Port of the latest changes (trivial symmetry support in SimpleTiledModel).
+ * Update dev dependencies.
+
 ### [2.0.0](https://github.com/kchapelier/wavefunctioncollapse/tree/2.0.0) (2019-07-06)
 
  * Port of the newer, faster, implementation.
