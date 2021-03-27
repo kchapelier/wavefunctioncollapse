@@ -47,6 +47,12 @@ const SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, hei
     });
   };
 
+  const reflect = function reflect(array) {
+    return tile(function (x, y) {
+      return array[tilesize - 1 - x + y * tilesize];
+    });
+  };
+
   this.tiles = [];
   const tempStationary = [];
 
@@ -99,6 +105,15 @@ const SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, hei
         };
         funcB = function (i) {
           return 1 - i;
+        };
+        break;
+      case 'F':
+        cardinality = 8;
+        funcA = function (i) {
+          return i < 4 ? (i + 1) % 4 : 4 + (i - 1) % 4;
+        };
+        funcB = function (i) {
+          return i < 4 ? i + 4 : i - 4;
         };
         break;
       default:
@@ -155,7 +170,7 @@ const SimpleTiledModel = function SimpleTiledModel (data, subsetName, width, hei
       }));
 
       for (let t = 1; t < cardinality; t++) {
-        this.tiles.push(rotate(this.tiles[this.T + t - 1]));
+        this.tiles.push(t < 4 ? rotate(this.tiles[this.T + t - 1]) : reflect(this.tiles[this.T + t - 4]));
       }
     }
 
