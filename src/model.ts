@@ -1,4 +1,4 @@
-import randomIndice from './random-indice';
+import randomIndice from './random-indice.js';
 
 const Model = function Model() { };
 

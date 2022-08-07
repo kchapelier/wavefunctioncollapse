@@ -1,14 +1,19 @@
 {
   "name": "wavefunctioncollapse",
+  "type": "module",
   "version": "2.1.0",
   "description": "Javascript port of https://github.com/mxgmn/WaveFunctionCollapse",
-  "main": "index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "dependencies": {},
   "devDependencies": {
     "jimp": "0.16.1",
     "typescript": "^4.7.4"
   },
-  "scripts": {},
+  "scripts": {
+    "postinstall": "npm run build",
+    "build": "tsc"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kchapelier/wavefunctioncollapse.git"

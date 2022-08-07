@@ -1,10 +1,8 @@
-"use strict";
+import { SimpleTiledModel } from './../dist/src/index.js';
+import Jimp from 'jimp';
+import lcg from './lcg.js';
 
-const SimpleTiledModel = require('./../index').SimpleTiledModel;
-const Jimp = require('jimp');
-const lcg = require('./lcg');
-
-const definition = require('./data/castle.definition.js');
+import definition from './data/castle.definition.js';
 
 function loadTileBitmapData (basePath, tile, number) {
   const unique = number !== null;

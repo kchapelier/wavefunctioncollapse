@@ -1,10 +1,8 @@
-"use strict";
+import { OverlappingModel } from "../dist/src/index.js";
+import Jimp from "jimp";
+import lcg from "./lcg.js";
 
-const OverlappingModel = require('./../index').OverlappingModel;
-const Jimp = require('jimp');
-const lcg = require('./lcg');
-
-Jimp.read('./data/flowers.bmp', function (err, sourceImage) {
+Jimp.read("./data/flowers.bmp", function (err, sourceImage) {
   if (err) {
     throw err;
   }
@@ -15,18 +13,29 @@ Jimp.read('./data/flowers.bmp', function (err, sourceImage) {
   const destWidth = 48;
   const destHeight = 48;
 
-  const model = new OverlappingModel(data, width, height, 3, destWidth, destHeight, true, true, 2, 102);
-  const finished = model.generate(lcg('testt'));
+  const model = new OverlappingModel(
+    data,
+    width,
+    height,
+    3,
+    destWidth,
+    destHeight,
+    true,
+    true,
+    2,
+    102
+  );
+  const finished = model.generate(lcg("testt"));
 
   if (finished) {
-    console.log('Success');
+    console.log("Success");
     const result = model.graphics();
 
     new Jimp(destWidth, destHeight, function (err, image) {
       image.bitmap.data = Buffer.from(result.buffer);
-      image.write('./output/overlapping-model.png');
+      image.write("./output/overlapping-model.png");
     });
   } else {
-    console.log('The generation ended in a contradiction');
+    console.log("The generation ended in a contradiction");
   }
 });

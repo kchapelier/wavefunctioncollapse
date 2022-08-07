@@ -1,7 +1,4 @@
-import overlappingModel from './overlapping-model';
-import tiledModel from './simple-tiled-model';
+import OverlappingModel from './overlapping-model.js';
+import SimpleTiledModel from './simple-tiled-model.js';
 
-export default {
-  OverlappingModel: overlappingModel,
-  SimpleTiledModel: tiledModel,
-};
+export { OverlappingModel, SimpleTiledModel };

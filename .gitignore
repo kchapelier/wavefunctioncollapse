@@ -38,3 +38,5 @@ jspm_packages
 
 .idea
 example/output/*.png
+
+dist
