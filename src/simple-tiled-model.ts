@@ -261,7 +261,7 @@ SimpleTiledModel.prototype.constructor = SimpleTiledModel;
  *
  * @protected
  */
-SimpleTiledModel.prototype.onBoundary = function (x, y) {
+SimpleTiledModel.prototype.onBoundary = function (x: number, y: number) {
   return !this.periodic && (x < 0 || y < 0 || x >= this.FMX || y >= this.FMY);
 };
 
@@ -275,7 +275,7 @@ SimpleTiledModel.prototype.onBoundary = function (x, y) {
  *
  * @public
  */
-SimpleTiledModel.prototype.graphics = function (array, defaultColor) {
+SimpleTiledModel.prototype.graphics = function (array: Uint8Array, defaultColor: any) {
   array = array || new Uint8Array(this.FMXxFMY * this.tilesize * this.tilesize * 4);
 
   if (this.isGenerationComplete()) {
@@ -294,7 +294,7 @@ SimpleTiledModel.prototype.graphics = function (array, defaultColor) {
  *
  * @protected
  */
-SimpleTiledModel.prototype.graphicsComplete = function (array) {
+SimpleTiledModel.prototype.graphicsComplete = function (array: Uint8Array) {
   for (let x = 0; x < this.FMX; x++) {
     for (let y = 0; y < this.FMY; y++) {
       const tile = this.tiles[this.observed[x + y * this.FMX]];
@@ -322,7 +322,7 @@ SimpleTiledModel.prototype.graphicsComplete = function (array) {
  *
  * @protected
  */
-SimpleTiledModel.prototype.graphicsIncomplete = function (array, defaultColor) {
+SimpleTiledModel.prototype.graphicsIncomplete = function (array: Uint8Array, defaultColor: any) {
   if (!defaultColor || defaultColor.length !== 4) {
     defaultColor = false;
   }

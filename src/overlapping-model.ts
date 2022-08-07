@@ -15,7 +15,7 @@ import Model from './model.js';
  *
  * @constructor
  */
-const OverlappingModel = function OverlappingModel(data: Uint8Array | Uint8ClampedArray, dataWidth: number, dataHeight: number, N: number, width: number, height: number, periodicInput: boolean, periodicOutput: boolean, symmetry: number, ground: number) {
+function OverlappingModel(data: Uint8Array | Uint8ClampedArray, dataWidth: number, dataHeight: number, N: number, width: number, height: number, periodicInput: boolean, periodicOutput: boolean, symmetry: number, ground: number) {
   ground = ground || 0;
 
   this.N = N;
@@ -64,24 +64,24 @@ const OverlappingModel = function OverlappingModel(data: Uint8Array | Uint8Clamp
   };
 
   const patternFromSample = function patternFromSample(x, y) {
-    return pattern(function (dx, dy) {
+    return pattern(function (dx: number, dy: number) {
       return sample[(x + dx) % dataWidth][(y + dy) % dataHeight];
     });
   };
 
-  const rotate = function rotate(p) {
-    return pattern(function (x, y) {
+  const rotate = function rotate(p: number[]) {
+    return pattern(function (x: number, y: number) {
       return p[N - 1 - y + x * N];
     });
   };
 
-  const reflect = function reflect(p) {
-    return pattern(function (x, y) {
+  const reflect = function reflect(p: number[]) {
+    return pattern(function (x: number, y: number) {
       return p[N - 1 - x + y * N];
     });
   };
 
-  const index = function index(p) {
+  const index = function index(p: number[]) {
     let result = 0;
     let power = 1;
 
@@ -93,7 +93,7 @@ const OverlappingModel = function OverlappingModel(data: Uint8Array | Uint8Clamp
     return result;
   };
 
-  const patternFromIndex = function patternFromIndex(ind) {
+  const patternFromIndex = function patternFromIndex(ind: number) {
     let residue = ind;
     let power = W;
     const result = new Array(N * N);
@@ -153,7 +153,7 @@ const OverlappingModel = function OverlappingModel(data: Uint8Array | Uint8Clamp
     this.weights[i] = weights[w]
   }
 
-  const agrees = function agrees(p1, p2, dx, dy) {
+  const agrees = function agrees(p1: number[], p2: number[], dx: number, dy: number) {
     const xmin = dx < 0 ? 0 : dx;
     const xmax = dx < 0 ? dx + N : N;
     const ymin = dy < 0 ? 0 : dy;
@@ -199,7 +199,7 @@ OverlappingModel.prototype.constructor = OverlappingModel;
  *
  * @protected
  */
-OverlappingModel.prototype.onBoundary = function (x, y) {
+OverlappingModel.prototype.onBoundary = function (x: number, y: number) {
   return !this.periodic && (x + this.N > this.FMX || y + this.N > this.FMY || x < 0 || y < 0);
 };
 
@@ -237,7 +237,7 @@ OverlappingModel.prototype.clear = function () {
  *
  * @public
  */
-OverlappingModel.prototype.graphics = function (array) {
+OverlappingModel.prototype.graphics = function (array: Uint8Array) {
   array = array || new Uint8Array(this.FMXxFMY * 4);
 
   if (this.isGenerationComplete()) {
@@ -256,7 +256,7 @@ OverlappingModel.prototype.graphics = function (array) {
  *
  * @protected
  */
-OverlappingModel.prototype.graphicsComplete = function (array) {
+OverlappingModel.prototype.graphicsComplete = function (array: Uint8Array) {
   for (let y = 0; y < this.FMY; y++) {
     const dy = y < this.FMY - this.N + 1 ? 0 : this.N - 1;
     for (let x = 0; x < this.FMX; x++) {
@@ -280,7 +280,7 @@ OverlappingModel.prototype.graphicsComplete = function (array) {
  *
  * @protected
  */
-OverlappingModel.prototype.graphicsIncomplete = function (array) {
+OverlappingModel.prototype.graphicsIncomplete = function (array: Uint8Array) {
   for (let i = 0; i < this.FMXxFMY; i++) {
     const x = i % this.FMX;
     const y = i / this.FMX | 0;

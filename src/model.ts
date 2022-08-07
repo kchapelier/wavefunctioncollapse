@@ -82,7 +82,7 @@ Model.prototype.initialize = function () {
  *
  * @protected
  */
-Model.prototype.observe = function (rng) {
+Model.prototype.observe = function (rng: () => number) {
 
   let min = 1000;
   let argmin = -1;
@@ -183,7 +183,7 @@ Model.prototype.propagate = function () {
  *
  * @protected
  */
-Model.prototype.singleIteration = function (rng) {
+Model.prototype.singleIteration = function (rng: () => number): boolean | null {
   const result = this.observe(rng);
 
   if (result !== null) {
@@ -207,7 +207,7 @@ Model.prototype.singleIteration = function (rng) {
  *
  * @public
  */
-Model.prototype.iterate = function (iterations, rng) {
+Model.prototype.iterate = function (iterations: number, rng: () => number): boolean {
   if (!this.wave) this.initialize();
 
   if (!this.initializedField) {
@@ -237,7 +237,7 @@ Model.prototype.iterate = function (iterations, rng) {
  *
  * @public
  */
-Model.prototype.generate = function (rng) {
+Model.prototype.generate = function (rng: () => number) {
   rng = rng || Math.random;
 
   if (!this.wave) this.initialize();
@@ -260,7 +260,7 @@ Model.prototype.generate = function (rng) {
  *
  * @public
  */
-Model.prototype.isGenerationComplete = function () {
+Model.prototype.isGenerationComplete = function (): boolean {
   return this.generationComplete;
 };
 
@@ -271,7 +271,7 @@ Model.prototype.isGenerationComplete = function () {
  *
  * @protected
  */
-Model.prototype.ban = function (i, t) {
+Model.prototype.ban = function (i: number, t: number) {
   const comp = this.compatible[i][t];
 
   for (let d = 0; d < 4; d++) {
