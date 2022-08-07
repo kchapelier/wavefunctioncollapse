@@ -12,6 +12,7 @@
   },
   "scripts": {
     "postinstall": "npm run build",
+    "watch": "tsc --watch",
     "build": "tsc"
   },
   "repository": {

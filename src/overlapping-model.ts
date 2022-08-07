@@ -15,7 +15,7 @@ import Model from './model.js';
  *
  * @constructor
  */
-const OverlappingModel = function OverlappingModel(data, dataWidth, dataHeight, N, width, height, periodicInput, periodicOutput, symmetry, ground) {
+const OverlappingModel = function OverlappingModel(data: Uint8Array | Uint8ClampedArray, dataWidth: number, dataHeight: number, N: number, width: number, height: number, periodicInput: boolean, periodicOutput: boolean, symmetry: number, ground: number) {
   ground = ground || 0;
 
   this.N = N;

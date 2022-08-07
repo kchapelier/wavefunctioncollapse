@@ -1,3 +1,4 @@
+import { DataObject } from './data.js';
 import Model from './model.js';
 
 /**
@@ -10,7 +11,7 @@ import Model from './model.js';
  *
  * @constructor
  */
-const SimpleTiledModel = function SimpleTiledModel(data, subsetName, width, height, periodic) {
+const SimpleTiledModel = function SimpleTiledModel(data: DataObject, subsetName: string, width: number, height: number, periodic: boolean) {
   const tilesize = data.tilesize || 16;
 
   this.FMX = width;

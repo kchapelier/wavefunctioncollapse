@@ -8,7 +8,7 @@ Model.prototype.FMXxFMY = 0;
 Model.prototype.T = 0;
 Model.prototype.N = 0;
 
-Model.prototype.initiliazedField = false;
+Model.prototype.initializedField = false;
 Model.prototype.generationComplete = false;
 
 Model.prototype.wave = null;
@@ -210,7 +210,7 @@ Model.prototype.singleIteration = function (rng) {
 Model.prototype.iterate = function (iterations, rng) {
   if (!this.wave) this.initialize();
 
-  if (!this.initiliazedField) {
+  if (!this.initializedField) {
     this.clear();
   }
 
@@ -312,7 +312,7 @@ Model.prototype.clear = function () {
     this.entropies[i] = this.startingEntropy;
   }
 
-  this.initiliazedField = true;
+  this.initializedField = true;
   this.generationComplete = false;
 };
 

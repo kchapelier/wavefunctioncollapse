@@ -3,7 +3,7 @@
  * @param {number[]} array
  * @param {float} r
  */
-function randomIndice(array, r) {
+function randomIndice(array: number[], r: number) {
   let sum = 0;
   let x = 0;
   let i = 0;
