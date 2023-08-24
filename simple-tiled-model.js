@@ -5,7 +5,7 @@ const Model = require('./model');
 /**
  *
  * @param {object} data Tiles, subset and constraints definitions
- * @param {string} subsetName Name of the subset to use from the data, use all tiles if falsy
+ * @param {string} subsetName Name of the subset to use from the data, use all tiles if false
  * @param {int} width The width of the generation
  * @param {int} height The height of the generation
  * @param {boolean} periodic Whether the source image is to be considered as periodic / as a repeatable texture
