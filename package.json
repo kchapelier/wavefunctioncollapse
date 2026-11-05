@@ -7,7 +7,9 @@
   "devDependencies": {
     "jimp": "0.16.1"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "node test/pattern-key-regression.cjs && node test/symmetry-propagator-regression.cjs && node test/seeded-generation.cjs"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kchapelier/wavefunctioncollapse.git"

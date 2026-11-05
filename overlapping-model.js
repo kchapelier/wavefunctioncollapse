@@ -51,9 +51,6 @@ const OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight,
     }
   }
 
-  const C = this.colors.length;
-  const W = Math.pow(C, N * N);
-
   const pattern = function pattern (f) {
     let result = new Array(N * N);
     for (let y = 0; y < N; y++) {
@@ -84,35 +81,13 @@ const OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight,
   };
 
   const index = function index (p) {
-    let result = 0;
-    let power = 1;
-
-    for (let i = 0; i < p.length; i++) {
-      result += p[p.length - 1 - i] * power;
-      power *= C;
-    }
-
-    return result;
+    // Palette indices are nonnegative integers: comma separators retain
+    // boundaries without lossy floating-point positional encodings.
+    return p.join(',');
   };
 
   const patternFromIndex = function patternFromIndex (ind) {
-    let residue = ind;
-    let power = W;
-    const result = new Array(N * N);
-
-    for (let i = 0; i < result.length; i++) {
-      power /= C;
-      let count = 0;
-
-      while (residue >= power) {
-        residue -= power;
-        count++;
-      }
-
-      result[i] = count;
-    }
-
-    return result;
+    return ind.split(',').map(Number);
   };
 
   const weights = {};
@@ -149,7 +124,7 @@ const OverlappingModel = function OverlappingModel (data, dataWidth, dataHeight,
   this.weights = new Array(this.T);
 
   for (let i = 0; i < this.T; i++) {
-    const w = parseInt(weightsKeys[i], 10);
+    const w = weightsKeys[i];
 
     this.patterns[i] = patternFromIndex(w);
     this.weights[i] = weights[w]
